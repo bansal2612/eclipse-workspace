@@ -1,0 +1,15 @@
+package parser;
+
+public class Prac {
+	 final int i;
+	 Prac()
+	 {
+		 i=10;
+	 }
+	 Prac(int i)
+	 {
+		 System.out.println("test");
+	 }
+
+
+}

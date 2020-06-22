@@ -1,0 +1,39 @@
+package com.birlasoft.automation.uipages;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.PageFactory;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.utils.UIUtils;
+
+public class LoginPage extends AbstractPage {
+	
+	static Logger LOGGER = Logger.getLogger(LoginPage.class);
+
+	public LoginPage(WebDriver driver) {
+		super( driver);
+		// TODO Auto-generated constructor stub
+	}
+  
+	@Override
+	public boolean isPageOpen() {
+		
+		
+		return UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"))
+				&& UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtPassword"))
+				&& UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "btnLogin"));
+		
+	}
+	
+	public HomePage login(String username , String password) throws Exception {
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"), username);
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtPassword"), password);
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "btnLogin"));
+		return PageFactory.initElements(driver, HomePage.class);
+	}
+	
+	
+	
+
+}

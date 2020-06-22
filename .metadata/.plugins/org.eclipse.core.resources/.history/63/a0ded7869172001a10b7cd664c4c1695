@@ -1,0 +1,376 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.sikuli.natives.SysUtil;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestData;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.tests.regression.TestsClient;
+import com.birlasoft.automation.uipages.AdminPage;
+import com.birlasoft.automation.uipages.ClientsPage;
+import com.birlasoft.automation.uipages.HomePage;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.automation.uipages.SirvaPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestAdmin  {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+	WebDriverWait wait;	
+	Random rand;
+	@BeforeSuite
+	public void suiteSetup() {
+		
+		try {
+			LOGGER = new LogMe(TestsClient.class);
+			TestConfig.getInstance().suiteSetup();
+		} catch (Exception e) {
+			LOGGER.logError("Exception " + e.getClass().getName() + " caught from suite setup method", e);
+		}
+		
+	}
+	@BeforeMethod
+	public void startReporting(Method method) throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+		UIUtils.waitForPageLoad(driver);
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+
+		// Login into the application
+		login = PageFactory.initElements(driver, LoginPage.class);
+		// Validation whether login is displaying or not
+		Assert.assertTrue(login.isPageOpen());
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+		TestConfig.getDataConfig().getPropertyValue("secret"));
+		wait=new WebDriverWait(driver, Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+		rand=new Random();
+		LOGGER.logBeginTestCase(method.getName());
+		Assert.assertTrue(home.isPageOpen());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+	 @Test(description = "Open/Update existing role",enabled = false,priority = 1, groups= {"Regression", "Admin"})
+     public void TC_01_Open_Update_Existing_Role() throws Exception 
+	{
+		 AdminPage adminPage=home.clickAdmin();
+		//Validation for Admin page is displayed
+		 Assert.assertTrue(adminPage.isPageOpen());
+		 LOGGER.logTestStep("PASS", "Administration Menu displayed");
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("AdminRole", "Roles")); 
+		 wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("AdminRole", "Roles"))));
+		 driver.switchTo().defaultContent();
+		 wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		 wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		 adminPage.getWork_bottom_updated();
+		 wait.until(ExpectedConditions.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Rolename")));
+		 //Validation for Role search page opened.
+		 Assert.assertTrue(UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Rolename")));
+		 LOGGER.logTestStep("PASS", "Role Search displayed",adminPage.takesScreenshot());
+		 UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Rolename")), TestData.getData("Role").get("Rolename").toString());
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Search"));		
+         driver.switchTo().parentFrame();
+         driver.switchTo().frame(wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//frame[@name='work_top']"))));
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "anchorLink"))));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "anchorLink"));
+         UIUtils.waitUntilElementExists(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "anchorLink"), 60);
+         driver.switchTo().defaultContent();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		 wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		 adminPage.getWork_top_Admin();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "RoleSecurity"))));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "RoleSecurity"));
+         Thread.sleep(10000);
+         driver.switchTo().defaultContent();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe"))));
+         driver.switchTo().frame(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe")));
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//frame[@name='work']"))));
+         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(UIUtils.findElement(driver, By.xpath("//frame[@name='work']"))));
+         int i=1;
+         while(i<3000)
+         {
+        	 if(UIUtils.isElementPresent(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ProgramTypes")))
+        	 {
+        		 break;
+        	 }
+        	 else
+        		 i=i+1;
+         }
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver,  TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ProgramTypes"))));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ProgramTypes"));
+         UIUtils.clickAllCheckbox(driver.findElements(TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ProgramTypesCheckbox")));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ProgramTypes"));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Analytics"));
+         UIUtils.clickAllCheckbox(driver.findElements(TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "AnalyticsCheckbox")));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Analytics"));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ReportCategories"));
+         Thread.sleep(1000);
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ReportCategories"));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Services"));
+         UIUtils.clickAllCheckbox(driver.findElements(TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "ServicesAll")));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Services"));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Assignee"));
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "payablesWorksheet"))));
+         UIUtils.scrollIntoView(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "payablesWorksheet"));
+         Thread.sleep(2000);
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "payablesWorksheet"));
+         Thread.sleep(2000);
+         driver.switchTo().defaultContent();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_2']/div[@class='dmode_iframe_container']/iframe"))));
+         driver.switchTo().frame(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_2']/div[@class='dmode_iframe_container']/iframe")));
+         Thread.sleep(2000);
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Okbutton"));
+         Thread.sleep(2000);
+         driver.switchTo().defaultContent();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe"))));
+         driver.switchTo().frame(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe")));
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//frame[@name='title_buttons']"))));
+         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(UIUtils.findElement(driver, By.xpath("//frame[@name='title_buttons']"))));
+         Thread.sleep(2000);
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("DeleteService", "Okbutton"));
+         Thread.sleep(5000);
+         driver.switchTo().defaultContent();
+         wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_2']/div[@class='dmode_iframe_container']/iframe"))));
+         Thread.sleep(2000);
+         adminPage.getMyBarFrame_Admin();
+		 UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save"));
+		 LOGGER.logTestStep("PASS", "Open/Update existing role is Executed Successfully", adminPage.takesScreenshot());
+		 }
+	
+
+	 @Test(description = "Service_Workflow_Review",enabled = true,priority = 1, groups= {"Regression", "Admin"})
+     public void TC_02_Service_Workflow_Review() throws Exception 
+	 {
+		 AdminPage adminPage=home.clickAdmin();
+	     //Validation for Client page is displayed
+		 try {
+		 Assert.assertTrue(adminPage.isPageOpen());
+		 LOGGER.logTestStep("PASS", "Administration Menu displayed");
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("AdminRole", "Find"));
+		 LOGGER.logTestStep("PASS", "Workflows displayed");
+         driver.switchTo().defaultContent();
+         adminPage.getWork_updated();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Find", "LanguageTraining"))));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Find", "LanguageTraining"));
+         wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Find", "LanguageTraining"))));
+         //Validation for Workflow Mechanic displayed
+         LOGGER.logTestStep("PASS", "Workflow Mechanic displayed");
+         Thread.sleep(2000);
+         driver.switchTo().defaultContent();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Admin", "ServiceWait"))));
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Admin", "PopUpFrame"))));
+         adminPage.getMechHeader();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "WorkflowMechanic"))));
+         wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//input[@value='Print']")));
+         driver.switchTo().parentFrame();
+         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("mech_navigate"));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "Components"));
+         wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "Components"))));
+         Thread.sleep(10000);
+         driver.switchTo().defaultContent();
+         adminPage.getMechHeader_dmode_frame_2();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "ServiceMechanic"))));
+         LOGGER.logTestStep("PASS", "Service Mechanic displayed");
+         Thread.sleep(2000);
+         wait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Workflow", "Print")));
+         driver.switchTo().parentFrame();
+         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("mech_navigate"));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "Participating"));
+         wait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Workflow", "ServiceName")));
+         driver.switchTo().parentFrame();
+         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("mech_header"));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Close"));
+         LOGGER.logTestStep("PASS", "Back to Workflow Mechanic");
+         Thread.sleep(2000);
+         driver.switchTo().defaultContent();
+         adminPage.mech_navigate();
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "Actions"));
+         wait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Setup")));
+         Thread.sleep(20000);
+         driver.switchTo().parentFrame();
+         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("mech_work"));
+         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("action_work"));
+         Thread.sleep(3000);
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "NewInititation"));
+         LOGGER.logTestStep("PASS", "Action displayed with the setup: Subject, Sequence, To Role");
+         Thread.sleep(8000);
+         driver.switchTo().defaultContent();
+         wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_2']/div[@class='dmode_iframe_container']/iframe"))));
+         adminPage.frame_hdr();
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("NewInit", "Okbutton"));
+         driver.switchTo().defaultContent();
+         Thread.sleep(4000);
+         adminPage.action_work();
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Workflow", "UpdateReq"));
+         Thread.sleep(4000);
+         driver.switchTo().defaultContent();
+         adminPage.frame_hdr();
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("NewInit", "Okbutton"));
+         Thread.sleep(2000);     
+         adminPage.getMechHeader();
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Close"));
+         LOGGER.logTestStep("PASS", "Service_Workflow_Review Test Case Passed",adminPage.takesScreenshot());
+			
+		} catch (Exception e) {
+              LOGGER.logTestStep("FAIL", "Service_Workflow_Review Test Case Failed",adminPage.takesScreenshot());
+              e.printStackTrace();
+		}
+ 	}
+	 @Test(description = "Viewing Logs",enabled = false,priority = 1, groups= {"Regression", "Admin"})
+     public void TC_03_Viewing_Logs() throws Exception 
+	 {
+		 AdminPage adminPage=home.clickAdmin();
+	     //Validation for Client page is displayed
+		 Assert.assertTrue(adminPage.isPageOpen());
+		 LOGGER.logTestStep("PASS", "Administration Menu displayed");
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("AdminRole", "UpdateServer"));
+		 wait.until(ExpectedConditions.alertIsPresent());
+		 UIUtils.alertAccept(driver);
+		 Thread.sleep(35000);
+		 LOGGER.logTestStep("PASS", "Warning: All servers will post log files within 30seconds");
+		 driver.switchTo().defaultContent();
+		 adminPage.get_cpTop();
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "AdminRole"));
+		 wait.until(ExpectedConditions.attributeContains(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Admin", "MenuAdmin")), "class", "cpmenu_selected"));
+		 Thread.sleep(4000);
+		 driver.switchTo().defaultContent();
+		 wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient", "Addprogram"))));
+		 wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='did_task_gadget_content']"))));
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("AdminRole", "ViewLogFiles"));	
+         Thread.sleep(30000);
+         driver.switchTo().defaultContent();
+         adminPage.getFrameDetail();
+         String date=UIUtils.getCurrentDate("MM/dd/yyyy");
+         String elementValue=UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Admin", "LogDate")).getText().trim();
+         if(date.contains(elementValue))
+         {
+        	 LOGGER.logTestStep("PASS", "Logs updated"); 
+         }
+         else
+        	 LOGGER.logTestStep("FAIL", "Logs Not updated", adminPage.takesScreenshot());	 
+          driver.switchTo().defaultContent();
+          UIUtils.clickElement(driver, By.xpath("//span[@id='did_modbox_title_1']/following-sibling::a[text()='X']"));
+	 }
+	 
+	 @Test(description = "Inactivate User",enabled = false,priority = 1, groups= {"Regression", "Admin"})
+     public void TC_04_Inactivate_User() throws Exception 
+	 {
+		 SirvaPage sirvaPage=home.clickSirva();
+		 Assert.assertTrue(sirvaPage.isPageOpen());
+		 LOGGER.logTestStep("PASS", "Sirva Page is displayed");
+		 driver.switchTo().defaultContent();
+		 sirvaPage.getWorkTop_updated();
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "Contacts"));
+		 driver.switchTo().defaultContent();
+		 wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		 wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		 sirvaPage.getWorkTop_updated();
+		 wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "Contacts"))));
+		 UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "Lastname")), "Anderson");
+		 UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "Status"), "text", "Inactive");
+		 driver.switchTo().defaultContent();
+		 sirvaPage.get_SearchFrame();
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch")); 
+         Thread.sleep(5*1000);
+         driver.switchTo().defaultContent();
+    	 sirvaPage.get_WorkBottomUpdated();
+         UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "anchorLink"));
+		 Thread.sleep(5*1000);
+		 driver.switchTo().defaultContent();
+		 sirvaPage.get_cpTop();
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnLogout"));
+		 Thread.sleep(5*1000);
+		 driver.switchTo().defaultContent();
+		 wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"))));
+		 UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"), "landerson");
+		 UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtPassword"), "LeslieLynn1");
+		 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "btnLogin"));
+		 wait.until(ExpectedConditions.urlContains("lockout=inactive"));
+		 Assert.assertTrue(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Admin", "InactiveLogin")).isDisplayed());
+		 
+		 
+			
+	 }
+	 
+	 
+	 @AfterMethod
+	  public void testResult(Method method, ITestResult result) throws Exception {
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		LOGGER.logEndTestCase(method.getName());
+		/*
+		 * try { login = home.logout(); // Validation weather login is displaying or not
+		 * Assert.assertTrue(login.isPageOpen(),login.takesScreenshot()); driver.quit();
+		 * } catch (Exception e) { // TODO: handle exception e.printStackTrace();
+		 * driver.close(); }
+		 */
+	}
+
+	@AfterTest
+	public void tearDown() throws Exception {
+		
+	}
+
+	@AfterSuite
+	public void generateResult() {
+		try {
+			ExtentManager.getInstance().flush();
+		} finally {
+			ExtentManager.getInstance().close();
+		}
+	
+	}
+
+
+	
+
+
+}

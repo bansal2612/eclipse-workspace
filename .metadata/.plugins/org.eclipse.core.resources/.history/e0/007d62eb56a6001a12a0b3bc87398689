@@ -1,0 +1,9 @@
+package parser;
+
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+
+public class Prac1 extends Prac {
+
+	
+}

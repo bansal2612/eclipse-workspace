@@ -1,0 +1,17 @@
+package parser;
+
+public class Prac {
+	public  void abc(int a,int b)
+	{
+		System.out.println("First Method");
+	}
+	public void abc(float a, float b)
+	{
+		System.out.println("Second method called");
+	}
+	public static void main(String[] args) {
+		Prac obj=new Prac();
+		obj.abc(2f, 2f);
+	}
+
+}

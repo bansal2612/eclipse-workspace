@@ -1,0 +1,10 @@
+package parser;
+
+public class MainClass {
+	public static void main(String[] args) {
+		Prac obj=new Prac1();
+		obj.get();
+		obj.msg();
+	}
+
+}

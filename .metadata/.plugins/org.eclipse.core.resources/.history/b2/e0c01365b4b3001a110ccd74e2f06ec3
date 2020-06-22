@@ -1,0 +1,12 @@
+package com.testNG;
+
+public class InterClas implements Inter{
+
+	public void abc() {
+		// TODO Auto-generated method stub
+		
+		System.out.println("Parent class");
+		
+	}
+
+}

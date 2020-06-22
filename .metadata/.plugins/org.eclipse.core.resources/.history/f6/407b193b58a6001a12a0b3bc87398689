@@ -1,0 +1,17 @@
+package parser;
+
+public class Prac {
+	int i;
+	static {
+		System.out.println("test");
+	}
+	Prac get()
+	{
+		return this;
+	}
+	void abc()
+	{
+		System.out.println("Parent");
+	}
+
+}

@@ -1,0 +1,19 @@
+package jiraAPIS;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.testng.annotations.Test;
+
+public abstract class ExcelRead {
+
+	public abstract void abc();
+	public static void test()
+	{
+		System.out.println("Abstract class");
+	}
+	
+	
+}

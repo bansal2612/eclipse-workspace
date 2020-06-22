@@ -1,0 +1,17 @@
+package jiraAPIS;
+
+public class Excelread2 extends ExcelRead {
+
+	@Override
+	public void abc() {
+		// TODO Auto-generated method stub
+		
+	}
+	public static void test()
+	{
+	
+		System.out.println("Non Abstract class");
+	}
+	
+
+}

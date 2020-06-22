@@ -1,0 +1,46 @@
+package testPackage;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.testng.annotations.Test;
+
+
+public class TestClass {
+@Test
+public static String secondWord(List<String> ls)
+{
+	Map<String, Integer> hm = new HashMap<String, Integer>();	
+	for(int i=0;i<ls.size();i++)
+	{
+		String key=ls.get(i);
+		if(hm.containsKey(key))
+		{
+			int freq=hm.get(key);
+			freq++;
+			hm.put(key, freq);
+		}
+		 else {
+			 hm.put(key, 1);
+			 }
+		
+		
+	}
+	String FistMaxOccurenceWord = “”, SecondMaxOccurenceWord=””; int max_count = 0;
+	for (Entry<String, Integer> val : hm.entrySet()) {
+		System.out.println(“key :: “+val.getKey());
+		System.out.println(“val :: “+val.getValue());
+
+		if (max_count < val.getValue()) {
+		SecondMaxOccurenceWord= FistMaxOccurenceWord;
+		FistMaxOccurenceWord = val.getKey();
+		}
+		}
+
+		return SecondMaxOccurenceWord;
+	
+}
+
+
+
+}

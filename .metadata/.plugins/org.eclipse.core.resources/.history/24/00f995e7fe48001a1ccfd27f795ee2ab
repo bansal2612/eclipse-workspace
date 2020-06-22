@@ -1,0 +1,164 @@
+package com.birlasoft.automation.pages;
+
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.utils.UIUtils;
+
+public class AssigneePage extends AbstractPage {
+	static Logger LOGGER = Logger.getLogger(AssigneePage.class);
+	public static WebDriverWait Wait;
+
+	public AssigneePage(WebDriver driver) {
+		wait=new WebDriverWait(driver, TimeUnit.SECONDS,30);
+		super(driver);
+		
+	}
+
+	@Override
+	public boolean isPageOpen() {
+		driver.switchTo().frame("did_appframe");
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");		
+
+		boolean isExist = UIUtils.isObjectExist(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtLastName"));
+		driver.switchTo().defaultContent();
+		return isExist;
+	}
+	
+	public void selectSearchRadio(String searchType) throws Exception {
+		driver.switchTo().frame("did_appframe");
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");		
+		
+		switch (searchType.toUpperCase()) {
+		case "ASSIGNEE":
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "chkAssignee"));
+			break;
+		case "ACTIONS":
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "chkActions"));
+			break;
+		case "SERVICES":
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "chkServices"));
+			break;
+		default:
+			
+			break;
+		}
+		driver.switchTo().defaultContent();
+	}
+
+	public boolean searchAssignee(String empId, String lastName, String fileNumber, String refNumber, String ssn,
+			String country, String status, String type) throws Exception {
+		driver.switchTo().frame("did_appframe");
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");
+
+		if (StringUtils.isNotBlank(empId)) {
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtEmpId"), empId);
+		}
+
+		if (StringUtils.isNotBlank(lastName)) {
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtLastName"),
+					lastName);
+		}
+
+		if (StringUtils.isNotBlank(fileNumber)) {
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtFileNumber"),
+					fileNumber);
+		}
+
+		if (StringUtils.isNotBlank(refNumber)) {
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtRefNumber"),
+					refNumber);
+		}
+
+		if (StringUtils.isNotBlank(ssn)) {
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtSsn"), ssn);
+		}
+
+		if (StringUtils.isNotBlank(country)) {
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "selectCountry"),
+					"text", country);
+		}
+
+		if (StringUtils.isNotBlank(status)) {
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "selectStatus"),
+					"text", status);
+		}
+
+		if (StringUtils.isNotBlank(type)) {
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "selectCustType"),
+					"text", type);
+		}
+		
+		driver.switchTo().defaultContent();
+		Thread.sleep(5000);
+		
+		driver.switchTo().frame("did_appframe");
+		LOGGER.info("Entered in first frame");
+		driver.switchTo().frame("work");
+		LOGGER.info("Entered in second frame");
+		driver.switchTo().frame("svc_select_btns");
+		LOGGER.info("Entered in third frame");
+
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch"));
+
+		driver.switchTo().defaultContent();
+		
+		///////////////////////////////////
+		
+		driver.switchTo().frame("did_appframe");
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_bottom");
+		
+		// TODO - Validation //txtGrid
+		boolean result = false;
+		
+		//String fileNumber1 = UIUtils.getText(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtGrid")));
+		Integer fileNumber1 =  Integer.valueOf(UIUtils.getText(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtGrid"))));
+		// Integer.parseInt(number) 
+		Integer num = Integer.valueOf(fileNumber);
+		
+		System.out.println(" F NUM =  " +fileNumber1);
+		if(num==fileNumber1) {
+			result=true;
+		}
+
+		//result = num.equals(fileNumber1);
+		
+     	driver.switchTo().defaultContent();
+//		driver.switchTo().parentFrame();
+//		driver.switchTo().parentFrame();
+//		driver.switchTo().parentFrame();
+		
+		return result ;
+		
+	}
+	
+	public boolean verifyAssigneeSearch(String empId, String lastName, String fileNumber, String refNumber, String ssn,
+			String country, String status, String type) throws Exception {
+		driver.switchTo().frame("did_appframe");
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_bottom");
+		
+		// TODO - Validation //txtGrid
+		boolean result = false;
+		
+		String fileNumber1 = UIUtils.getText(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Assignee", "txtGrid")));
+		
+		System.out.println(" F NUM =  " +fileNumber1);
+
+	     result = fileNumber.equals(fileNumber1);
+		
+		driver.switchTo().defaultContent();
+		
+		return result;
+	}
+}

@@ -1,0 +1,28 @@
+package testPackage;
+
+import java.util.ArrayList;
+
+import org.testng.annotations.Test;
+
+
+
+public class ReverseWords {
+	@Test
+	void a()
+	{
+	int x[][]= {{1,2,3,4},{2,3,4,5},{3,4,5,6},{4,5,6,7}};
+	int a=0,j=0;
+	for(int i=0;i<4;i++)
+	{
+		for(;j<4;j+=2)
+		{
+			System.out.println(x[i][j]);
+		}
+		j=0;
+		if(j==4) {j=1}
+		
+	}
+	}
+	
+
+}

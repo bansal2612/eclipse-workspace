@@ -1,0 +1,742 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Ignore;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestData;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.uipages.AssigneePage;
+import com.birlasoft.automation.uipages.ClientsPage;
+import com.birlasoft.automation.uipages.CreateAssignee;
+import com.birlasoft.automation.uipages.HomePage;
+import com.birlasoft.automation.uipages.Login;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.DataLoaders;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestsRegression {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+	WebDriverWait wait;	
+	Random rand;
+
+	@BeforeSuite
+	public void suiteSetup() {
+		
+		try {
+			LOGGER = new LogMe(TestsRegression.class);
+			TestConfig.getInstance().suiteSetup();
+		} catch (Exception e) {
+			LOGGER.logError("Exception " + e.getClass().getName() + " caught from suite setup method", e);
+		}
+		
+	}
+
+	@BeforeTest
+	public void testSetup() throws Exception {
+		
+		
+		
+		
+		
+	}
+
+	@BeforeMethod
+	public void startReporting(Method method) throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+		UIUtils.waitForPageLoad(driver);
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+
+		// Login into the application
+		login = PageFactory.initElements(driver, LoginPage.class);
+
+		// Validation whether login is displaying or not
+		Assert.assertTrue(login.isPageOpen());
+        
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+		TestConfig.getDataConfig().getPropertyValue("secret"));
+		wait=new WebDriverWait(driver, 80);
+		rand=new Random();
+		LOGGER.logBeginTestCase(method.getName());
+		Assert.assertTrue(home.isPageOpen());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+	
+	//Client Test cases.
+    @Test(description = "Client Update test with email field only.",enabled = true,priority = 1,dataProvider = "getClientData")//enabled = true , false
+	  public void tc01_Client_ClientUpdate(String client, String clientNumber, String country, String status) throws Exception
+	    {		
+		   LOGGER.logInfo("Client Update test with email field only.");
+		   ClientsPage clientpage=home.clickClients();
+		   //Validation for Client page loading.
+		   Assert.assertTrue(clientpage.isPageOpen());
+		   LOGGER.logTestStep("PASS", "Client page is displaying properly");
+		   //Validation for Search result for client on the basis of given client name.
+		   Assert.assertTrue(clientpage.searchClient(client, clientNumber, country, status));
+		   LOGGER.logTestStep("PASS", "Client Profile is displayed");
+		   UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+		   wait.until(ExpectedConditions.invisibilityOf(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"))));
+		   UIUtils.waitForPageLoad(driver);
+		   clientpage.getWork_top();
+		   String email="updatedTestEmail" + rand.nextInt(1000) + "@sirva.com";
+		   UIUtils.inputText(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "email") , email);
+		   clientpage.getMyBarFrame();
+		   UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save"));
+		   Thread.sleep(10000);
+		   driver.switchTo().defaultContent();
+		   clientpage.getWork_top();
+		   //Validations for verifying the updated client email
+		   Assert.assertEquals(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "email")).getAttribute("value"), email, "Email is successfully Updated");
+		   LOGGER.logTestStep("PASS", "Client Profile updated");
+		  
+	}
+	
+	
+	 
+	  @Test(description="Add new Program", priority=2, enabled=true) //enabled = true , false
+	  public void TC03_addProgram() throws Exception
+	  {
+		  LOGGER.logInfo("TC03_Add program test case started");
+		  ClientsPage clientpage=home.clickClients();
+		  //Validation for Client page is displayed
+		  Assert.assertTrue(clientpage.isPageOpen());
+		  LOGGER.logTestStep("PASS", "Client Page is displayed");
+		  clientpage.getWork_top_AddnewClient();
+		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"), "Test Client New");
+		  driver.switchTo().defaultContent();
+	      wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+	      driver.switchTo().frame("work");		
+		  driver.switchTo().frame("svc_select_btns");
+        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch")); //ClientSearch 
+        clientpage.getWork_bottom();
+        //Validation for Client search result.
+        Assert.assertTrue(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink")).isDisplayed(), "Not able to search client. Please retry");
+        LOGGER.logTestStep("PASS", "Client search Result is coming properly");
+        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+        clientpage.getSummaryButtons();
+        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient", "Programs"));
+        driver.switchTo().defaultContent();
+        driver.switchTo().frame(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Newclient", "Addprogram")));
+        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Addprogram"));
+        Thread.sleep(20000);
+        driver.switchTo().defaultContent();
+        wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe"))));
+        driver.switchTo().frame("mechparent");
+        driver.switchTo().frame("mech_work");
+        wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//textarea[@name='description']"))));
+        //Validation of Program Mechanic displayed
+        Assert.assertTrue(driver.findElement(By.xpath("//textarea[@name='description']")).isDisplayed(),"Error in displaying Program Mechanic: Step Click on Add Program");
+        LOGGER.logTestStep("PASS", "Program Mechanic displayed successfully.");
+        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Programmech"));
+        Thread.sleep(30000);
+        driver.switchTo().defaultContent();
+        wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//div[@id='styled_popup_2']/div[@class='dmode_iframe_container']/iframe"))));
+        driver.switchTo().frame("work_nav");
+        Thread.sleep(30000);
+        int i=1;
+        while(i<100000)
+        {
+      	  if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Programs", "Programcopy")).isDisplayed())
+      	  {
+      		  //Validation for Program copy window displayed
+      		  LOGGER.logTestStep("PASS", "Program copy window displayed successfully.");
+      		  break;
+      	  }
+      	  else 
+      		  i=i+1;
+        }
+        UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Programcopy"), TestData.getData("AddClient").get("Programcopy").toString());
+        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Find"));
+        i=1;
+        while(i<100000)
+        {
+      	  if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Programs", "Result")).isDisplayed())
+      	  {
+      		  break;
+      	  }
+      	  else 
+      		  i=i+1;
+        }
+        Thread.sleep(5000);
+        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Result"));
+        Thread.sleep(5000);
+        driver.switchTo().defaultContent();
+        i=1;
+        while(i<100000)
+        {
+      	  if(driver.findElement(By.xpath("//div[@id='did_se_confirm_div']//td[@id='did_confirm_buttons']/input[@value='Yes']")).isDisplayed())
+      	  {
+      		  break;
+      	  }
+      	  else 
+      		  i=i+1;
+        }
+        UIUtils.clickElement(driver, By.xpath("//div[@id='did_se_confirm_div']//td[@id='did_confirm_buttons']/input[@value='Yes']"));
+        wait.until(ExpectedConditions.alertIsPresent());
+        //Validation for Confirmation required box displayed.
+        Assert.assertTrue(UIUtils.isAlertPresentSE(driver), "Confirmation required Alert box is not displayed");
+        LOGGER.logTestStep("PASS", "Confirmation required Alert box displayed successfully");
+        UIUtils.alertAccept(driver);
+        wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		  driver.switchTo().frame("summaryButtons");
+		  UIUtils.clickElement(driver, By.xpath("//td[contains(text(),'20th Century')]"));
+		  Thread.sleep(30000);
+		  driver.switchTo().defaultContent();
+		  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe"))));
+        driver.switchTo().frame("mechparent");
+        driver.switchTo().frame("mech_work");
+        UIUtils.inputText(driver, By.xpath("//td[contains(text(),'Program Name')]/following-sibling::td/input"), TestData.getData("AddClient").get("Programname").toString() + rand.nextInt(1000));
+        UIUtils.clickElement(driver, By.xpath("//td[contains(text(),'Active')]/following-sibling::td/input"));
+        UIUtils.selectValue(driver, By.xpath("//td[contains(text(),'Program Type')]/following-sibling::td/select"), "text", TestData.getData("AddClient").get("Programtype").toString());
+        UIUtils.inputText(driver, By.xpath("//td[contains(text(),'From')]/input"), UIUtils.getCurrentDate("MM/dd/yyyy"));
+        UIUtils.getCurrentDate("MM/dd/yyyy");
+        driver.switchTo().parentFrame();
+        driver.switchTo().frame("mech_header");
+        UIUtils.clickElement(driver, By.xpath("//input[@value='Save']"));
+        Thread.sleep(15000);
+        driver.switchTo().parentFrame();
+        driver.switchTo().frame("mech_work");
+        wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//a[contains(text(),'Click here to preview')]"))));
+        String name=driver.findElement(By.xpath("//td[contains(text(),'Program Name')]/following-sibling::td/input")).getAttribute("value") + "updated";
+        UIUtils.inputText(driver, By.xpath("//td[contains(text(),'Program Name')]/following-sibling::td/input"), name);
+        driver.switchTo().parentFrame();
+        driver.switchTo().frame("mech_header");
+        UIUtils.clickElement(driver, By.xpath("//input[@value='Save']"));
+        Thread.sleep(20000);
+        WebElement close=wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@value='Close']")));
+        close.click();
+        Thread.sleep(10000);	
+        driver.switchTo().defaultContent();
+        wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//div[@id='did_appframe_display']/iframe"))));
+        driver.switchTo().frame("cp_display");
+        UIUtils.clickElement(driver, By.xpath("//span[text()='Assignee']"));
+        driver.switchTo().defaultContent();
+        clientpage.getWork_top_AddnewClient();
+        UIUtils.clickElement(driver, By.xpath("//input[@value='Add New']"));
+        driver.switchTo().defaultContent();
+        clientpage.getWork_top_AddnewClient();
+        UIUtils.inputText(driver.findElement(By.xpath("//input[@id='Text1']")), "John");
+        UIUtils.inputText(driver.findElement(By.xpath("//input[@id='Text3']")), "Smith");
+        UIUtils.clickElement(driver, By.xpath("//a[text()='Client']"));
+        driver.switchTo().defaultContent();
+        i=1; 
+		  while(i<10000) 
+		  {
+			  if(driver.findElement(By.xpath("//div[@id='did_appframe_display']/preceding::div[@id='styled_popup_1']/div[@class='dmode_iframe_container']")).isDisplayed())
+			  {
+				  break;
+			  }
+			  else 
+				  i=i+1;
+		  
+		  }
+		  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Main", "Modalxpath"))));
+		  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("work_top"));
+		  UIUtils.inputText(driver.findElement(By.xpath("//td[starts-with(text(),'Client')]/preceding-sibling::td/input")), "Test Client New");
+		  driver.switchTo().parentFrame();
+		  driver.switchTo().frame("svc_select_btns");
+		  UIUtils.clickElement(driver, By.xpath("//input[@value='Search' and @name='button1']"));
+		  driver.switchTo().parentFrame();
+		  wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[starts-with(@name,'work_bottom') and contains(@src,'blank')]"))));
+		  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[starts-with(@name,'work_bottom') and contains(@src,'blank')]"))));
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+		  driver.switchTo().defaultContent();
+		  clientpage.getWork_top_AddnewClient();
+		  String toTest=name + " (Test Client New)";
+		  //Validation for Program added in step 25 should be available in the drop down
+		  Assert.assertTrue(UIUtils.checkTextInDropdown(driver.findElement(By.xpath("//td[@id='did_program']/select")), toTest));
+		  LOGGER.logTestStep("PASS", "Newly added program is coming successfully");
+	  }
+
+	// RJ TC
+	
+	@Test(description = " TC--Description--> Assignee Update - **", priority = 3, enabled = true)
+	//enabled = true , false
+	public void tc02AssigneeUpdate( ) throws Exception {
+		// Click on Assignee Menu
+		AssigneePage assPage = home.clickAssignee();
+
+		// Close Pop-up
+		// home.closePopup();
+
+		Assert.assertTrue(assPage.isPageOpen());
+		LOGGER.logTestStep("PASS", "Assignee page is displaying - Click Assignee is successful", assPage.takesScreenshot());
+
+		
+		
+		Assert.assertTrue(assPage.updateAssignee());
+		LOGGER.logTestStep("PASS", "Assignee page is updated ", assPage.takesScreenshot());
+		
+		
+		LOGGER.logTestStep("PASS", "Assignee page : Advance search is clicked");
+		
+		
+		 
+	}
+	
+	
+	@Test(description = " TC--Description--> Add Note to Assignee - **", priority=6, enabled = true)
+	//enabled = true , false
+	public void tc03AddNotesAssignee( ) throws Exception {
+		// Click on Assignee Menu
+		AssigneePage assPage = home.clickAssignee();
+
+		// Close Pop-up
+		// home.closePopup();
+
+		Assert.assertTrue(assPage.isPageOpen());
+		LOGGER.logTestStep("PASS", "Assignee page is displaying - Click Assignee is successful", assPage.takesScreenshot());
+
+		
+		
+		Assert.assertTrue(assPage.addNotesAssignee());
+		LOGGER.logTestStep("PASS", "Notes is added in Assignee page ", assPage.takesScreenshot());
+		
+		
+		//LOGGER.logTestStep("PASS", "Assignee page : Advance search is clicked");
+		
+		
+		 
+	}
+	
+	//EB TC 
+	
+	@Test(description="Verifying Add Assignee Generic",priority=1 , enabled = true) //enabled = true , false
+	public void tc01ValidatingAddassignee_Generic() throws Exception {
+	
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			//CreateAssignee.isPageOpen();
+	
+			if(CreateAssignee.clickelement_AS()) {
+				LOGGER.logTestStep("Pass", "Successfully clicked on add assignee", CreateAssignee.takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Unable to click on add assignee", CreateAssignee.takesScreenshot());
+			}
+			
+			
+			
+			if(CreateAssignee.clickelement_Add(driver)) {
+				LOGGER.logTestStep("Pass", "Opened Assignee page", CreateAssignee.takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Unable to open assignee page", CreateAssignee.takesScreenshot());
+			}
+	
+
+			String ExpectValue=CreateAssignee.clickelement_client(driver);
+
+			
+			//CreateAssignee.Client_frame(driver);
+			
+
+	
+			if(CreateAssignee.clickelement_clientsearch(driver,"GENERIC")) {
+				LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Unable to click client search", CreateAssignee.takesScreenshot());
+			}
+	
+
+			
+			Assert.assertTrue(CreateAssignee.clickelement_clientselect(driver,"GENERIC"));
+				LOGGER.logTestStep("Pass", "Succesfully selected client", CreateAssignee.takesScreenshot());
+
+
+			
+	    
+	       String Actvalue= CreateAssignee.Asssignee_assignmenttype(driver);
+	       
+			
+			
+			
+			if(CreateAssignee.Asssignee_details(driver)) {
+				LOGGER.logTestStep("Pass", "Successfully entered phonedetails", CreateAssignee.takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Unable to enter phonedetails", CreateAssignee.takesScreenshot());
+			}
+			
+			
+			  
+			if(CreateAssignee.Asssignee_CustomerAddressdetails(driver)) {
+				LOGGER.logTestStep("Pass", "Successfully entered Preferred Address", CreateAssignee.takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Unable to enter Preferred Address", CreateAssignee.takesScreenshot());
+			}
+			
+					
+				
+				//CreateAssignee.WorkTop_frame(driver);
+				
+			Assert.assertTrue(CreateAssignee.Dependent(driver));
+			LOGGER.logTestStep("Pass", "Successfully selected Depenedent Accompany", CreateAssignee.takesScreenshot());
+
+
+
+		
+			  //CreateAssignee.WorkTop_frame(driver);
+			  
+			if(CreateAssignee.inputText_CientContact(driver,"GENERIC")) {
+				LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Unable to enter Cient Contact", CreateAssignee.takesScreenshot());
+			}
+
+		
+			CreateAssignee.Save_frame(driver);
+			CreateAssignee.Save();
+			//CreateAssignee.WorkTop_frame(driver);
+
+				
+			  if(CreateAssignee.Morelink(driver)) {
+					LOGGER.logTestStep("Pass", "Successfully Entered More address", CreateAssignee.takesScreenshot());
+				} else {
+					LOGGER.logTestStep("Fail", "Unable to Entered More address", CreateAssignee.takesScreenshot());
+				}
+			   
+			CreateAssignee.Ok();
+			CreateAssignee.Ok2();
+			
+				
+			CreateAssignee.Save_frame(driver);
+				
+			Assert.assertTrue(CreateAssignee.Save());
+				
+			LOGGER.logTestStep("PASS", "Addassignee(Generic) is Successful ", CreateAssignee.takesScreenshot());
+
+
+	}
+	
+	@Test(description="Verifying Add Assignee 3M",priority=2, enabled = true) //enabled = true , false
+	public void tc02ValidatingAddassignee_3M() throws Exception {
+
+		CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+		CreateAssignee.Assignee_frame(driver);
+		//CreateAssignee.isPageOpen();
+
+		if(CreateAssignee.clickelement_AS()) {
+			LOGGER.logTestStep("Pass", "Successfully clicked on add assignee", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to click on add assignee", CreateAssignee.takesScreenshot());
+		}
+		
+		
+		
+		if(CreateAssignee.clickelement_Add(driver)) {
+			LOGGER.logTestStep("Pass", "Opened Assignee page", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to open assignee page", CreateAssignee.takesScreenshot());
+		}
+
+
+		String ExpectValue=CreateAssignee.clickelement_client(driver);
+
+		
+		//CreateAssignee.Client_frame(driver);
+		
+
+
+		if(CreateAssignee.clickelement_clientsearch(driver,"3M")) {
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to click client search", CreateAssignee.takesScreenshot());
+		}
+
+
+		
+		if(CreateAssignee.clickelement_clientselect(driver,"3M")) {
+			LOGGER.logTestStep("Pass", "Succesfully selected client", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to select client", CreateAssignee.takesScreenshot());
+		}
+
+	       String Actvalue= CreateAssignee.Asssignee_assignmenttype(driver);  
+       
+		
+		
+		
+		if(CreateAssignee.Asssignee_details(driver)) {
+			LOGGER.logTestStep("Pass", "Successfully entered phonedetails", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter phonedetails", CreateAssignee.takesScreenshot());
+		}
+		Assert.assertTrue(CreateAssignee.Asssignee_CustomerCompany(driver));
+		LOGGER.logTestStep("Pass", "Successfully entered Company details", CreateAssignee.takesScreenshot());
+		  
+		if(CreateAssignee.Asssignee_CustomerAddressdetails(driver)) {
+			LOGGER.logTestStep("Pass", "Successfully entered Preferred Address", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter Preferred Address", CreateAssignee.takesScreenshot());
+		}
+		
+
+
+
+	
+		  //CreateAssignee.WorkTop_frame(driver);
+		  
+		if(CreateAssignee.inputText_CientContact(driver,"3M")) {
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter Cient Contact", CreateAssignee.takesScreenshot());
+		}
+
+		
+			
+		CreateAssignee.Save_frame(driver);
+			
+		Assert.assertTrue(CreateAssignee.Save());
+		LOGGER.logTestStep("PASS", "Addassignee(3M) is Successful ", CreateAssignee.takesScreenshot());
+
+	}
+	
+	
+	@Test(description="Verifying Add Assignee Alliance B",priority=3 , enabled = true)//enabled = true , false
+	public void tc03ValidatingAddassignee_Alliance_B() throws Exception {
+
+		CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+		CreateAssignee.Assignee_frame(driver);
+		//CreateAssignee.isPageOpen();
+
+		if(CreateAssignee.clickelement_AS()) {
+			LOGGER.logTestStep("Pass", "Successfully clicked on add assignee", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to click on add assignee", CreateAssignee.takesScreenshot());
+		}
+		
+		
+		
+		if(CreateAssignee.clickelement_Add(driver)) {
+			LOGGER.logTestStep("Pass", "Opened Assignee page", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to open assignee page", CreateAssignee.takesScreenshot());
+		}
+
+
+		String ExpectValue=CreateAssignee.clickelement_client(driver);
+		
+		//CreateAssignee.Client_frame(driver);
+		
+
+
+		if(CreateAssignee.clickelement_clientsearch(driver,"Alliance")) {
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to click client search", CreateAssignee.takesScreenshot());
+		}
+
+
+		
+		if(CreateAssignee.clickelement_clientselect(driver,"Alliance")) {
+			LOGGER.logTestStep("Pass", "Succesfully selected client", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to select client", CreateAssignee.takesScreenshot());
+		}
+
+	       String Actvalue= CreateAssignee.Asssignee_assignmenttype(driver);
+		
+		
+		if(CreateAssignee.Asssignee_details(driver)) {
+			LOGGER.logTestStep("Pass", "Successfully entered phonedetails", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter phonedetails", CreateAssignee.takesScreenshot());
+		}
+		
+		
+		  
+		Assert.assertTrue(CreateAssignee.Asssignee_CustomerAddressdetails(driver));
+			LOGGER.logTestStep("Pass", "Successfully entered Preferred Address", CreateAssignee.takesScreenshot());
+		
+		
+		
+		  
+		if(CreateAssignee.inputText_CientContact(driver,"Alliance")) {
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter Cient Contact", CreateAssignee.takesScreenshot());
+		}
+
+
+
+				
+		CreateAssignee.Save_frame(driver);
+			
+		Assert.assertTrue(CreateAssignee.Save());
+		LOGGER.logTestStep("PASS", "Addassignee(Alliance) is Successful ", CreateAssignee.takesScreenshot());
+	}
+	
+	@Test(description="Verifying Add Assignee Amgen",priority=4 , enabled = true) //enabled = true , false
+	public void tc04ValidatingAddassignee_Amgen() throws Exception {
+
+
+		CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+		CreateAssignee.Assignee_frame(driver);
+		//CreateAssignee.isPageOpen();
+
+		if(CreateAssignee.clickelement_AS()) {
+			LOGGER.logTestStep("Pass", "Successfully clicked on add assignee", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to click on add assignee", CreateAssignee.takesScreenshot());
+		}
+		
+		
+		
+		if(CreateAssignee.clickelement_Add(driver)) {
+			LOGGER.logTestStep("Pass", "Opened Assignee page", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to open assignee page", CreateAssignee.takesScreenshot());
+		}
+
+
+		String ExpectValue=CreateAssignee.clickelement_client(driver);
+
+
+		
+		//CreateAssignee.Client_frame(driver);
+		
+
+
+		if(CreateAssignee.clickelement_clientsearch(driver,"Amgen" )) {
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to click client search", CreateAssignee.takesScreenshot());
+		}
+
+
+		
+		if(CreateAssignee.clickelement_clientselect(driver,"Amgen")) {
+			LOGGER.logTestStep("Pass", "Succesfully selected client", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to select client", CreateAssignee.takesScreenshot());
+		}
+
+	       String Actvalue= CreateAssignee.Asssignee_assignmenttype(driver);
+		
+		
+		if(CreateAssignee.Asssignee_details(driver)) {
+			LOGGER.logTestStep("Pass", "Successfully entered phonedetails", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter phonedetails", CreateAssignee.takesScreenshot());
+		}
+		
+		
+		  
+		if(CreateAssignee.Asssignee_CustomerAddressdetails(driver)) {
+			LOGGER.logTestStep("Pass", "Successfully entered Preferred Address", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter Preferred Address", CreateAssignee.takesScreenshot());
+		}
+
+	
+		  //CreateAssignee.WorkTop_frame(driver);
+		  
+		if(CreateAssignee.inputText_CientContact(driver,"Amgen")) {
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Unable to enter Cient Contact", CreateAssignee.takesScreenshot());
+		}
+
+	
+		
+		CreateAssignee.Save_frame(driver);
+			
+		Assert.assertTrue(CreateAssignee.Save());
+		LOGGER.logTestStep("PASS", "Addassignee(Amgen) is Successful ", CreateAssignee.takesScreenshot());
+	}
+	
+	
+	
+	  
+	  @AfterMethod
+	  public void testResult(Method method, ITestResult result) throws Exception {
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		LOGGER.logEndTestCase(method.getName());
+		login = home.logout();
+		// Validation whether login is displaying or not
+		Assert.assertTrue(login.isPageOpen());
+		driver.quit();
+	}
+
+	@AfterTest
+	public void tearDown() throws Exception {
+		
+	}
+
+	@AfterSuite
+	public void generateResult() {
+		try {
+			ExtentManager.getInstance().flush();
+		} finally {
+			ExtentManager.getInstance().close();
+		}
+	
+	}
+
+	@DataProvider(name = "getClientData")
+	public Object[][] getAssigneeData() throws IOException {
+		String testDataPath = new File("Framework\\Test_Data\\TestData.xlsx").getCanonicalPath();
+		return DataLoaders.excelDataLoader(testDataPath, "SearchClient");
+	}
+}

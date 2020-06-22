@@ -1,0 +1,15 @@
+package parser;
+
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+
+public class Prac1 extends Prac {
+
+	 void msg()throws FileAlreadyExistsException{  
+		    System.out.println("TestExceptionChild");  
+		  }  
+	public static void main(String[] args) {
+		Prac obj=new Prac1();
+		obj.msg();
+	}
+}

@@ -1,0 +1,300 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.uipages.FinancePage;
+import com.birlasoft.automation.uipages.HomePage;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestFinance {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+	WebDriverWait wait;	
+	Random rand;
+	
+	@BeforeSuite
+	public void setup() throws Exception {
+		LOGGER = new LogMe(TestFinance.class);
+		TestConfig.getInstance().suiteSetup();
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+	}
+
+	@BeforeMethod
+	public void startReporting(Method method) throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+		LOGGER.logBeginTestCase(method.getName());
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+		UIUtils.waitForPageLoad(driver);
+		try {
+			Robot robot = new Robot();
+			robot.keyPress(KeyEvent.VK_CONTROL);
+			robot.keyPress(KeyEvent.VK_0);
+			robot.keyRelease(KeyEvent.VK_CONTROL);
+		} catch (AWTException e) {
+
+		}
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+		login = PageFactory.initElements(driver, LoginPage.class);
+
+		// Validation whether login is displaying or not
+		login.isPageOpen();
+        
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+		TestConfig.getDataConfig().getPropertyValue("secret"));
+		//wait=new WebDriverWait(driver, 80);
+		rand=new Random();
+		LOGGER.logBeginTestCase(method.getName());
+		Assert.assertTrue(home.isPageOpen());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+
+	@Test(description = "Finance - Assignee Payable Search Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testAssigneePayableSearch(Map financeTestData) throws Exception {
+		FinancePage financePage = PageFactory.initElements(driver, FinancePage.class);
+		if(financePage.navigateToAssigneeFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Assignee Folder", financePage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Assignee Folder", financePage.takesScreenshot());
+		}
+		if(financePage.searchAndNavigateToFile(financeTestData.get("FileNumber").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully searched and navigated to file", financePage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to search and/or navigate to file", financePage.takesScreenshot());
+		}
+		if(financePage.navigateToPayments()) {
+			LOGGER.logTestStep("Pass", "Successfully navigate to payments", financePage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to payments", financePage.takesScreenshot());
+		}
+		if(financePage.searchAndnavigateToPO(financeTestData.get("PONumber").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully searched and navigated to PO", financePage.takesScreenshot());
+			
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to search and navigate PO", financePage.takesScreenshot());
+		}
+	}
+
+	@Test(description = "Finance - Add Payment Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testAddPayment(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToAssigneeFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Assignee Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Assignee Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.searchAndNavigateToFile(financeTestData.get("FileNumber").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully searched and navigated to file", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to search and/or navigate to file", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.navigateToPayments()) {
+			LOGGER.logTestStep("Pass", "Successfully navigate to payments", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to payments", seLoginPage.takesScreenshot());
+		}
+		seLoginPage.addNewPO(financeTestData, LOGGER);
+		LOGGER.logTestStep("Pass", "Successfully searched and navigated to PO", seLoginPage.takesScreenshot());
+	}
+
+	@Test(description = "Finance - Add Payment with currency change Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testAddPaymentWithCurrencyChange(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToAssigneeFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Assignee Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Assignee Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.searchAndNavigateToFile(financeTestData.get("FileNumber").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully searched and navigated to file", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to search and/or navigate to file", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.navigateToPayments()) {
+			LOGGER.logTestStep("Pass", "Successfully navigate to payments", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to payments", seLoginPage.takesScreenshot());
+		}
+		seLoginPage.addNewPOWithCurrencyChange(financeTestData, LOGGER);
+		LOGGER.logTestStep("Pass", "Successfully added and navigated to PO", seLoginPage.takesScreenshot());
+	}
+	
+	@Test(description = "Finance Add Feee Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testAddFee(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToAssigneeFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Assignee Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Assignee Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.searchAndNavigateToFile(financeTestData.get("FileNumber").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully searched and navigated to file", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to search and/or navigate to file", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.navigateToFees()) {
+			LOGGER.logTestStep("Pass", "Successfully navigate to fees", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to fees", seLoginPage.takesScreenshot());
+		}
+		seLoginPage.addFees(financeTestData, LOGGER);
+		LOGGER.logTestStep("Pass", "Successfully added fee", seLoginPage.takesScreenshot());
+	}
+	
+	@Test(description = "Finance - Add Invoice Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testAddInvoice(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToClientFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Clients Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Clients Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.searchClient(financeTestData.get("Client").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Client", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Client", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.navigatetoFinanceLinkFromClientAddInvoice()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Client AddInvoice", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Client AddInvoice", seLoginPage.takesScreenshot());
+		}
+	}
+	
+	@Test(description = "Finance - Batch Invoicing Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testBatchInvoicing(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToClientFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Clients Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Clients Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.searchClient(financeTestData.get("Client").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Client", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Client", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.navigatetoFinanceLinkRunBatchFromClient(financeTestData, LOGGER)) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Client", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Client", seLoginPage.takesScreenshot());
+		}
+	}
+	
+	@Test(description = "Finance Apply Report Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testApplyReport(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToFinanceFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Finance Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Finance Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.applyReport(financeTestData, LOGGER)) {
+			LOGGER.logTestStep("Pass", "Successfully apply report", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to apply report", seLoginPage.takesScreenshot());
+		}
+	}
+	
+	@Test(description = "Finance Adhoc Journal Entry Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testAdhocJournalEntry(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToClientFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Clients Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Clients Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.searchClient(financeTestData.get("Client").toString())) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Client", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Client", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.adhocJournal(financeTestData, LOGGER)) {
+			LOGGER.logTestStep("Pass", "Successfully verified Adhoc Journal", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to verify Adhoc Journal", seLoginPage.takesScreenshot());
+		}
+	}
+	
+	@Test(description = "Finance View Report Test Case", dataProvider="financetestdata", dataProviderClass=TestDataProviders.class)
+	public void testViewReport(Map financeTestData) throws Exception {
+		FinancePage seLoginPage = PageFactory.initElements(driver, FinancePage.class);
+		if(seLoginPage.navigateToFinanceFolder()) {
+			LOGGER.logTestStep("Pass", "Successfully navigated to Finance Folder", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to navigate to Finance Folder", seLoginPage.takesScreenshot());
+		}
+		if(seLoginPage.viewReport(financeTestData, LOGGER)) {
+			LOGGER.logTestStep("Pass", "Successfully viewed report", seLoginPage.takesScreenshot());
+		} else {
+			LOGGER.logTestStep("Fail", "Failed to view report", seLoginPage.takesScreenshot());
+		}
+	}
+	
+	@AfterMethod
+	public void testResult(Method method, ITestResult result) throws IOException {
+		driver.close();
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		LOGGER.logEndTestCase(method.getName());
+	}
+	
+	@AfterSuite
+	public void generateResult() {
+		try {
+			ExtentManager.getInstance().flush();
+		} finally {
+			ExtentManager.getInstance().close();
+		}
+	}
+}

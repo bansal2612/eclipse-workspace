@@ -1,0 +1,64 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.Test;
+
+
+public class TestQElab {
+	public static WebDriverWait wait;
+	@Test
+	public void TC_AddWidget()
+	{
+		System.setProperty("webdriver.chrome.driver", "D:\\QLab\\SeSirvaAutFinal\\drivers\\chromedriver.exe");
+		WebDriver driver=new ChromeDriver();
+		driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+		wait=new WebDriverWait(driver, 90);
+		driver.manage().window().maximize();
+		driver.get("https://sirva-uat.movecrm.com/");
+		driver.findElement(By.id("username")).sendKeys("Q2222000021");
+		driver.findElement(By.id("password")).sendKeys("Welcome1#");
+		driver.findElement(By.xpath("//button[text()='Sign in']")).click();
+		if(TestQElab.closePopUp(driver))
+		{
+			List<WebElement> allPopUp=driver.findElements(By.xpath("//i[@title='Remove']"));
+			for (WebElement webElement : allPopUp) {
+				webElement.click();
+				
+			}
+		}
+		
+	}
+	
+	public static boolean closePopUp(WebDriver driver)
+	{
+		try {
+			if(driver.findElements(By.xpath("//i[@title='Remove']")).size()>0)
+				return true;
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
+		return false;
+	}
+	public static boolean yesButtonClick(WebDriver driver)
+	{
+		try {
+			if(driver.findElements(By.xpath("//button[text()='Yes']")).size()>0)
+				return true;
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			return false;
+		}
+		return false;
+	}
+	//button[text()='Yes']
+}

@@ -1,0 +1,9 @@
+package parser;
+
+public class Prac {
+	Prac get()
+	{
+		return this;
+	}
+
+}

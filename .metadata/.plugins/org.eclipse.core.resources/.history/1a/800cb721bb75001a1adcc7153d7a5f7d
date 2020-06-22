@@ -1,0 +1,20 @@
+package pracpr;
+
+public class PRacPr {
+	
+		public static void main(String[] args) {
+			String s="3/4/2020";
+			String p="03/04/2020";
+			
+			String srr[]=s.split("/");
+			String prr[]=p.split("/");
+			System.out.println(srr.length);
+			for(int i=0;i<s.length()-2;i++)
+			{
+				if(prr[i].contains(srr[i]))
+					System.out.println("True");
+			}
+		
+	}
+
+}

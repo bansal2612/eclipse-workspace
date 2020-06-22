@@ -1,0 +1,174 @@
+package com.birlasoft.automation.uipages;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.uipages.AdminPage;
+import com.birlasoft.automation.uipages.AssigneePage;
+import com.birlasoft.automation.uipages.BASFPage;
+import com.birlasoft.automation.uipages.ClientsPage;
+import com.birlasoft.automation.uipages.FinancePage;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.automation.uipages.ReportsPage;
+import com.birlasoft.automation.uipages.SirvaPage;
+import com.birlasoft.automation.uipages.SuppliersPage;
+import com.birlasoft.utils.UIUtils;
+
+public class HomePage extends AbstractPage {
+	
+	static Logger LOGGER = Logger.getLogger(HomePage.class);
+	WebDriverWait wWait  ;
+
+	public HomePage(WebDriver driver) {
+		super( driver); 
+		wWait = new WebDriverWait(driver,  Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+		wWait.until(ExpectedConditions.invisibilityOfElementLocated(
+				TestConfig.getInstance().getObjRep().getLocator("Common", "objProgressBar")));
+	}
+	
+	@Override
+	public boolean isPageOpen() throws InterruptedException {
+		WebElement mainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameMain")));
+		//driver.switchTo().frame(mainFrame);
+		//driver.switchTo().frame("did_appframe");
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement topframe = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameTop"))); //frameTop
+
+		driver.switchTo().frame(topframe);
+		
+		//driver.switchTo().frame("cp_top");
+
+		boolean isExist = UIUtils.isObjectExist(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Common", "btnLogout"));
+		driver.switchTo().defaultContent();
+		//Thread.sleep(15000);
+		return isExist;
+	}
+	
+	public LoginPage logout() throws Exception {
+		Thread.sleep(4000);
+		driver.switchTo().defaultContent();
+		wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//div[@id='did_appframe_display']/iframe"))));
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("cp_top"));
+	    UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnLogout"));
+	    wWait.until(ExpectedConditions.urlContains("/home/poplog"));
+	    wWait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"))));
+		driver.switchTo().defaultContent();
+		return PageFactory.initElements(driver, LoginPage.class);
+	}
+
+	public void closePopup() throws Exception {
+		driver.switchTo().frame("did_dmode_frame_1");
+		driver.switchTo().frame("mainframe");
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnOK"));
+		driver.switchTo().defaultContent();
+	}
+	
+	public AssigneePage clickAssignee() throws Exception {
+		WebElement mainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameMain")));
+		driver.switchTo().frame(mainFrame);
+
+		WebElement displayFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameDisplay")));
+		driver.switchTo().frame(displayFrame);
+
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "menuAssignee"));
+		driver.switchTo().defaultContent();
+		return PageFactory.initElements(driver, AssigneePage.class);
+	}
+
+	public ClientsPage clickClients() throws Exception {
+		// TODO
+		
+		driver.switchTo().frame(wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameMain"))));
+
+		WebElement displayFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameDisplay")));
+		driver.switchTo().frame(displayFrame);
+		
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "menuClients"));
+		driver.switchTo().defaultContent();
+		
+		return PageFactory.initElements(driver, ClientsPage.class);
+	}
+	public boolean navigateToClients() {
+		try {
+			driver.switchTo().defaultContent();
+			//Thread.sleep(5 * 1000);
+			//driver.switchTo().frame("did_appframe");
+			
+			wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("did_cp_display");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "menuClients"));
+			Thread.sleep(5 * 1000);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+
+	public SuppliersPage clickSuppliers() {
+		// TODO
+		return PageFactory.initElements(driver, SuppliersPage.class);
+	}
+
+	public SirvaPage clickSirva() throws Exception {
+		driver.switchTo().frame(wWait.until(ExpectedConditions.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameMain"))));
+		WebElement displayFrame = wWait.until(ExpectedConditions.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameDisplay")));
+		driver.switchTo().frame(displayFrame);
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "menuSirva"));
+		driver.switchTo().defaultContent();
+		return PageFactory.initElements(driver, SirvaPage.class);
+	}
+
+	public FinancePage clickFinance() {
+		// TODO
+		return PageFactory.initElements(driver, FinancePage.class);
+	}
+
+	public AdminPage clickAdmin() throws Exception {
+		driver.switchTo().frame(wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameMain"))));
+		WebElement displayFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameTop")));
+		driver.switchTo().frame(displayFrame);
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "AdminRole"));
+		wWait.until(ExpectedConditions.attributeContains(UIUtils.findElement(driver, By.xpath("//div[@id='menu_admin']")), "class", "cpmenu_selected"));
+		driver.switchTo().defaultContent();
+		return PageFactory.initElements(driver, AdminPage.class);
+	}
+
+	public BASFPage clickBASF() {
+		// TODO
+		return PageFactory.initElements(driver, BASFPage.class);
+	}
+
+	public ReportsPage clickReports() throws Exception {
+		// TODO
+		driver.switchTo().frame(wWait.until(ExpectedConditions.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameMain"))));
+		WebElement displayFrame = wWait.until(ExpectedConditions.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameDisplay")));
+		driver.switchTo().frame(displayFrame);
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "menuSirva"));
+		driver.switchTo().defaultContent();
+		
+		return PageFactory.initElements(driver, ReportsPage.class);
+	}
+	
+	
+	
+
+}

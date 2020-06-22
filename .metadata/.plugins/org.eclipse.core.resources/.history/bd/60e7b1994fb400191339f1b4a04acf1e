@@ -1,0 +1,33 @@
+package testPackage;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.testng.annotations.Test;
+
+
+public class TestClass {
+@Test
+public static String secondWord(List<String> ls)
+{
+	Map<String, Integer> hm = new HashMap<String, Integer>();	
+	for(int i=0;i<ls.size();i++)
+	{
+		String key=ls.get(i);
+		if(hm.containsKey(key))
+		{
+			int freq=hm.get(key);
+			freq++;
+			hm.put(key, freq);
+		}
+		 else {
+			 hm.put(key, 1);
+			 }
+		
+	}
+	
+}
+
+
+
+}

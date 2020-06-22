@@ -1,0 +1,10 @@
+package parser;
+
+public class Prac {
+	public void msg()
+	{
+		System.out.println("parent method");
+		
+	}
+
+}

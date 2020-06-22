@@ -1,0 +1,19 @@
+package parser;
+
+public class ABC implements Cloneable{
+	int i;
+	public void setI(int i) {
+		this.i = i;
+	}
+	public int getI() {
+		return i;
+	}
+	public Object clone() throws CloneNotSupportedException
+	{
+		return super.clone();
+	}
+	public static void main(String[] args) {
+	Math.abs(2.3);
+	}
+
+}

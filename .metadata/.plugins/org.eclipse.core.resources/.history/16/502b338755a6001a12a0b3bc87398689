@@ -1,0 +1,10 @@
+package parser;
+
+public class Prac {
+	public void msg() throws ArithmeticException
+	{
+		System.out.println("Parent method");
+		
+	}
+
+}

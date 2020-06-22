@@ -1,0 +1,9 @@
+package com.testNG;
+
+public class SubClass extends InterClas{
+	
+	public static void main(String[] args) {
+		Inter obj=new SubClass();
+	}
+
+}

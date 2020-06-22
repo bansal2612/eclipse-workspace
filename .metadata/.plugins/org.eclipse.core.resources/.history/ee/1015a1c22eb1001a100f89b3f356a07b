@@ -1,0 +1,23 @@
+package com.testNG;
+
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+public class Prac {
+
+	@DataProvider(name="ProviderSearch")
+	public Object[][] getDataProvider()
+	{
+		return new Object[][]
+				{
+			{"test","test1"},
+			{"test2","test3"}
+				};
+	}
+	@Test(dataProvider = "ProviderSearch")
+	public void UserData(String user,String Pass)
+	{
+		System.out.println(user);
+		System.out.println(Pass);
+	}
+}

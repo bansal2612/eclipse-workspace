@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/activation-1.1.1.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/commons-codec-1.9.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/commons-lang3-3.4.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/groovy-2.5.6.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/groovy-json-2.5.6.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/groovy-xml-2.5.6.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/hamcrest-2.1.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/httpclient-4.5.3.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/httpcore-4.4.6.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/httpmime-4.5.3.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/javax.activation-api-1.2.0.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/jaxb-api-2.3.1.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/jaxb-osgi-2.3.0.1.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/org.apache.sling.javax.activation-0.1.0.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/rest-assured-4.1.1.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/tagsoup-1.2.1.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/bsh-2.0b6.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/jcommander-1.72.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/testng-6.14.2.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/poi-3.9.jar"/>
+	<classpathentry kind="lib" path="D:/Selenium/Rest Assured/Rest Assured/poi-ooxml-3.9.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

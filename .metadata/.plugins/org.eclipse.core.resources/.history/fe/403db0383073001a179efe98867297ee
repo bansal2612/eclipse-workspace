@@ -1,0 +1,228 @@
+package com.birlasoft.automation.uipages;
+
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestData;
+import com.birlasoft.utils.UIUtils;
+
+public class ClientsPage extends AbstractPage {
+	static Logger LOGGER = Logger.getLogger(ClientsPage.class);
+	WebDriverWait wWait;
+
+	public ClientsPage(WebDriver driver) {
+		super(driver);
+		wWait = new WebDriverWait(driver,  Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+	}
+
+
+	@Override
+	public boolean isPageOpen() {
+	
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");	
+		boolean isExist = UIUtils.isObjectExist(driver,
+		TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"));
+		return isExist;
+	}
+	
+	
+	public void getWork_top()
+	{
+		
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("did_structure_work_frame");
+		driver.switchTo().frame("work_top");	
+	
+	}
+	
+	public void getWork_bottom()
+	{
+		  driver.switchTo().defaultContent();
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		  driver.switchTo().frame("work");
+		  wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+	}
+	
+	
+	//Method to get into Add Client Frame.
+	public void getWork_top_AddnewClient()
+	{
+	    
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");
+		
+	}
+	//Method to direct for myBarFrame
+	public void getMyBarFrame()
+	{
+		driver.switchTo().defaultContent();
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("myBar");
+	}
+	
+	
+	//Method to enter into fileupload frame
+	public void getDocument_work()
+	{
+		
+		   driver.switchTo().defaultContent();
+	       int i=1; 
+				  while(i<10000) 
+				  {
+					  if(driver.findElement(By.xpath("//div[@id='did_appframe_display']/preceding::div[@id='styled_popup_1']/div[@class='dmode_iframe_container']")).isDisplayed())
+					  {
+						  break;
+					  }
+					  else 
+						  i=i+1;
+				  
+				  }
+		    
+		   driver.switchTo().frame(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Main", "Modalxpath")));
+	       driver.switchTo().frame("mechparent");
+		   driver.switchTo().frame("mech_work");
+		   driver.switchTo().frame("document_work");
+	}
+	//Method to Enter Data in File upload form
+	public  void fill_DocumentUploadform(String keyforDesc,String keyforSelect) throws Exception
+	{
+		wWait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Fileupload", "Description"))));
+		UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Fileupload", "Description")).sendKeys(TestData.getData("AddClient").get(keyforDesc).toString());
+		UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Fileupload", "DocType"), TestData.getData("AddClient").get(keyforSelect).toString());
+		wWait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Fileupload", "Okbutton")));
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Fileupload", "Okbutton"));
+	}
+	//Method to get into summaryDetails Frame
+	public void getSummaryDetailsFrame()
+	{
+		driver.switchTo().defaultContent();
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("summaryDetails");
+	}
+	
+	//Method to get into summaryButtons Frame
+	public void getSummaryButtons()
+	{
+		driver.switchTo().defaultContent();
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("summaryButtons");
+		
+	}
+	
+    //Method to search for client data.
+	public boolean searchClient(String client, String clientNumber, String country, String status) throws Exception {
+		
+	try {
+			/*
+			 * driver.switchTo().defaultContent();
+			 * wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"
+			 * )); driver.switchTo().frame("work"); driver.switchTo().frame("work_top");
+			 */
+		if (StringUtils.isNotBlank(client)) {
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient" + 
+					""), client);
+		}
+
+		if (StringUtils.isNotBlank(clientNumber)) {
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "ClientNumber"),
+					clientNumber);
+		}
+
+		if (StringUtils.isNotBlank(country)) {
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "ClientCountry"),
+					country);
+		}
+
+		if (StringUtils.isNotBlank(status)) {
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "ClientStatus"),
+					status);
+		}
+
+     	driver.switchTo().defaultContent();
+     	get_svc_select_btns();
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch")); //ClientSearch 
+
+		driver.switchTo().defaultContent();
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("work");
+		wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		return true;
+	} catch (Exception e) {
+		// TODO: handle exception
+		e.printStackTrace();
+		
+	}
+	return false;
+
+		
+
+
+
+	}
+	public boolean toCheckWindowhandlesCount(WebDriver driver,WebElement element, int count) throws Exception
+	{
+		
+		UIUtils.clickElementJScript(driver, element);
+		Set<String> allwindowHandles=driver.getWindowHandles();
+		try {
+			if(allwindowHandles.size()>1) {
+				System.out.println("Enetered");
+				wWait.until(ExpectedConditions.numberOfWindowsToBe(1));
+				return true;
+			}
+		        
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			
+		}
+		return false;
+		
+	}
+
+	public boolean verifyClientSearch(String client, String clientNumber, String country, String status) throws Exception {
+		WebDriverWait wait = new WebDriverWait(driver, 3);
+		Thread.sleep(20000);
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id=\"did_appframe\"]")));
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_bottom");
+
+		// TODO - Validation //txtGrid
+		boolean result = false;
+		String fileNumber1 = UIUtils.getText(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "txtGrid")));
+        System.out.println(" F NUM =  " +fileNumber1);
+        result = clientNumber.equals(fileNumber1);
+		driver.switchTo().defaultContent();
+        return result;
+	}
+	public void get_svc_select_btns()
+	{
+		try {
+			WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(did_appframe_Element);
+			WebElement work=driver.findElement(By.name("work"));
+			driver.switchTo().frame(work);
+			WebElement svc_select_btns=driver.findElement(By.name("svc_select_btns"));
+			driver.switchTo().frame(svc_select_btns); 
+			Thread.sleep(5*1000);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		 
+	}
+}

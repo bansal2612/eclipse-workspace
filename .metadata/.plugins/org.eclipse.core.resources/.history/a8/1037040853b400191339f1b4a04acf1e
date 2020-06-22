@@ -1,0 +1,11 @@
+package testPackage;
+
+import java.util.ArrayList;
+
+public class ReverseWords {
+	public void revrWords(String s)
+	{
+		String[] ar=s.toCharArray();
+	}
+
+}

@@ -1,0 +1,922 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.uipages.AssigneePage;
+import com.birlasoft.automation.uipages.AssigneeServiceForm;
+import com.birlasoft.automation.uipages.CreateAssignee;
+import com.birlasoft.automation.uipages.HomePage;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.DataLoaders;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestsAssignee {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+	WebDriverWait wait;
+	Random rand;
+
+	@BeforeSuite(alwaysRun = true)
+	public void suiteSetup() {
+
+		try {
+			LOGGER = new LogMe(TestsAssignee.class);
+			TestConfig.getInstance().suiteSetup();
+		} catch (Exception e) {
+			LOGGER.logError("Exception " + e.getClass().getName() + " caught from suite setup method", e);
+		}
+
+	}
+
+	@BeforeTest
+	public void testSetup() throws Exception {
+
+	}
+
+	@BeforeMethod(alwaysRun = true)
+	public void startReporting(Method method) throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+		UIUtils.waitForPageLoad(driver);
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+
+		// Login into the application
+		login = PageFactory.initElements(driver, LoginPage.class);
+
+		// Validation whether login is displaying or not
+		login.isPageOpen();
+
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+				TestConfig.getDataConfig().getPropertyValue("secret"));
+		// wait=new WebDriverWait(driver, 80);
+		rand = new Random();
+		LOGGER.logBeginTestCase(method.getName());
+		Assert.assertTrue(home.isPageOpen());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+
+	// Assignee TC
+
+	@Test(description = " TC--Description--> Assignee Update - **", priority = 1, enabled = true, groups = {
+			"Regression", "Assignee" }, alwaysRun = true)
+	// enabled = true , false
+	public void tc01Existing_assignee_open_update() throws Exception {
+		// Click on Assignee Menu
+		try {
+			AssigneePage assPage = home.clickAssignee();
+			// Close Pop-up
+			// home.closePopup(); Assert.assertTrue(assPage.isPageOpen());
+
+			Assert.assertTrue(assPage.updateAssignee());
+			LOGGER.logTestStep("PASS", "Assignee page is updated ", assPage.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Verifying Add Assignee Generic", priority = 2, enabled = true, groups = { "Regression",
+			"false" }, alwaysRun = true) // enabled = true , false
+	public void tc02ValidatingAdd_New_Assignee_Generic() throws Exception {
+
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "GENERIC"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "GENERIC");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			Assert.assertTrue(CreateAssignee.Asssignee_details(driver));
+
+			Assert.assertTrue(CreateAssignee.Asssignee_CustomerAddressdetails(driver));
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.Dependent(driver);
+			LOGGER.logTestStep("Pass", "Successfully selected Depenedent Accompany", CreateAssignee.takesScreenshot());
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "GENERIC");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+			CreateAssignee.Save();
+			// CreateAssignee.WorkTop_frame(driver);
+			CreateAssignee.Morelink(driver);
+
+			CreateAssignee.Ok();
+			CreateAssignee.Ok2();
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(Generic) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Verifying Add Assignee 3M", priority = 3, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc03ValidatingAdd_New_Assignee_3M() throws Exception {
+
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_client(driver));
+
+			// CreateAssignee.Client_frame(driver);
+			CreateAssignee.clickelement_clientsearch(driver, "3M");
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "3M");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerCompany(driver);
+
+			Assert.assertTrue(CreateAssignee.Asssignee_CustomerAddressdetails(driver));
+			// CreateAssignee.WorkTop_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.inputText_CientContact(driver, "3M"));
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+			LOGGER.logTestStep("PASS", "Addassignee(3M) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Verifying Add Assignee Alliance B", priority = 4, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc04ValidatingAdd_New_Assignee_Alliance_Bernstein() throws Exception {
+
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_client(driver));
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "Alliance"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "Alliance");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "Alliance");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+			LOGGER.logTestStep("PASS", "Addassignee(Alliance) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = "Verifying Add Assignee Amgen", priority = 5, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc05ValidatingAdd_New_Assignee_Amgen() throws Exception {
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "Amgen"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "Amgen");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.inputText_CientContact(driver, "Amgen"));
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+			LOGGER.logTestStep("PASS", "Addassignee(Amgen) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = "Verifying Add Assignee Apple", priority = 6, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true)
+	public void tc06ValidatingAdd_New_Assignee_Apple() throws Exception {
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "Apple"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "Apple");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			Assert.assertTrue(CreateAssignee.Assignee_Appledetails(driver));
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.inputText_CientContact(driver, "Apple"));
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(Apple) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Verifying Add Assignee BKC", priority = 7, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true)
+	public void tc07ValidatingAdd_New_Assignee_BKC() throws Exception {
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "SIRVAlytics Testing"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "SIRVAlytics Testing");
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "SIRVAlytics Testing");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(BKC) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = "Verifying Add Assignee Deutsche Bank", priority = 8, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true)
+	public void tc08ValidatingAddassignee_Deutsche_Bank() throws Exception {
+
+		try {
+
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			CreateAssignee.clickelement_clientsearch(driver, "Deutsche Bank");
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+			Assert.assertTrue(CreateAssignee.clickelement_clientselect(driver, "Deutsche Bank"));
+
+			// Assert.assertTrue(CreateAssignee.Asssignee_assignmenttype(driver));
+			CreateAssignee.bank_Details(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "Deutsche Bank");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(Deutsche Bank) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = "Verifying Add Assignee SIRVAlyticsTesting direct delivery", priority = 9, enabled = true, groups = {
+			"Regression", "Assignee" }, alwaysRun = true)
+	public void tc09ValidatingAdd_New_Assignee_Direct_Delivery() throws Exception {
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "SIRVAlyticsTesting_del"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "SIRVAlyticsTesting_del");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "SIRVAlyticsTesting_del");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(Direct Delivery) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Verifying Add Assignee Genentech", priority = 10, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc10ValidatingAdd_New_Assignee_Genentech() throws Exception {
+
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "Genentech"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "Genentech");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "Genentech");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(Genentech) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Verifying Add Assignee Honeywell", priority = 11, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true)
+	public void tc11ValidatingAdd_New_Assignee_Honeywell() throws Exception {
+		try {
+
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "Honeywell"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "Honeywell");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+			Assert.assertTrue(CreateAssignee.Honeywell_Details());
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			CreateAssignee.SBU_Details();
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "Honeywell");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(Honeywell) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = "Verifying Add Assignee Metlife", priority = 12, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true)
+	public void tc12ValidatingAdd_New_Assignee_Metlife() throws Exception {
+		try {
+
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "Metlife"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "Metlife");
+
+			CreateAssignee.bank_Details(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "Metlife");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(Metlife) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = "Verifying Add Assignee MMC", priority = 13, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc13ValidatingAdd_New_Assignee_MMC() throws Exception {
+
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "MMC"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "MMC");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "MMC");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(MMC) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Verifying Add Assignee SAP", priority = 14, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc14ValidatingAdd_New_Assignee_SAP() throws Exception {
+
+		try {
+			CreateAssignee CreateAssignee = PageFactory.initElements(driver, CreateAssignee.class);
+			CreateAssignee.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			CreateAssignee.clickelement_AS();
+
+			CreateAssignee.clickelement_Add(driver);
+
+			CreateAssignee.clickelement_client(driver);
+
+			// CreateAssignee.Client_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.clickelement_clientsearch(driver, "SAP"));
+			LOGGER.logTestStep("Pass", "successfully clicked Client search", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.clickelement_clientselect(driver, "SAP");
+
+			CreateAssignee.Asssignee_assignmenttype(driver);
+			CreateAssignee.Asssignee_details(driver);
+
+			CreateAssignee.Asssignee_CustomerAddressdetails(driver);
+
+			// CreateAssignee.WorkTop_frame(driver);
+
+			CreateAssignee.inputText_CientContact(driver, "SAP");
+			LOGGER.logTestStep("Pass", "Successfully entered Cient Contact", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Save_frame(driver);
+
+			Assert.assertTrue(CreateAssignee.Save());
+			LOGGER.logTestStep("PASS", "Successfully saved ", CreateAssignee.takesScreenshot());
+
+			CreateAssignee.Final_scroll();
+
+			LOGGER.logTestStep("PASS", "Addassignee(SAP) is Successful ", CreateAssignee.takesScreenshot());
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = "Service Form Assign to Supplier  and start action   ", priority = 15, enabled = true, groups = {
+			"Regression", "Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc15Validating_ServiceFormAssigntoSupplierandstartaction() throws Exception {
+
+		try {
+			AssigneeServiceForm AssigneeServiceForm = PageFactory.initElements(driver, AssigneeServiceForm.class);
+			AssigneeServiceForm.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			AssigneeServiceForm.clickelement_AS();
+
+			Assert.assertTrue(AssigneeServiceForm.StatusSearch(driver));
+			// LOGGER.logTestStep("Pass", "Opened Assignee page",
+			// AssigneeServiceForm.takesScreenshot());
+
+			AssigneeServiceForm.ServiceSelect(driver);
+			LOGGER.logTestStep("Pass", "successfully selected service ", AssigneeServiceForm.takesScreenshot());
+
+			AssigneeServiceForm.SupplierDetails();
+
+			Assert.assertTrue(AssigneeServiceForm.EmailDetails());
+			LOGGER.logTestStep("Pass", "Succesfully executed Service Form Assign to Supplier",
+					AssigneeServiceForm.takesScreenshot());
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = "Services with Letters", priority = 16, enabled = true, groups = { "Regression",
+			"Assignee" }, alwaysRun = true) // enabled = true , false
+	public void tc16Validating_ServiceswithLetters() throws Exception {
+
+		try {
+			AssigneeServiceForm AssigneeServiceForm = PageFactory.initElements(driver, AssigneeServiceForm.class);
+			AssigneeServiceForm.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			AssigneeServiceForm.clickelement_AS();
+
+			Assert.assertTrue(AssigneeServiceForm.Assigneeletter_details(driver));
+			LOGGER.logTestStep("Pass", "Succesfully opened Assignee letter", AssigneeServiceForm.takesScreenshot());
+
+			AssigneeServiceForm.Canvas();
+			AssigneeServiceForm.Save_frame(driver);
+			Assert.assertTrue(AssigneeServiceForm.Save());
+			LOGGER.logTestStep("Pass", "successfully executed Assignee letter ", AssigneeServiceForm.takesScreenshot());
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = " TC--Description--> Add Note to Assignee - **", priority = 17, enabled = true, groups = {
+			"Regression", "Assignee" }, alwaysRun = true)
+	// enabled = true , false
+	public void tc17Add_new_notes() throws Exception {
+		// Click on Assignee Menu
+		try {
+			AssigneePage assPage = home.clickAssignee();
+
+			// Close Pop-up
+			// home.closePopup();
+
+			assPage.isPageOpen();
+
+			Assert.assertTrue(assPage.addNotesAssignee());
+			LOGGER.logTestStep("PASS", "Notes " + "s added in Assignee page ", assPage.takesScreenshot());
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@Test(description = " TC--Description--> Assignee Documents", priority = 18, enabled = true, groups = {
+			"Regression", "Assignee" }, alwaysRun = true)
+	// enabled = true , false
+	public void tc18AssigneeDocuments() throws Exception {
+		try {
+
+			AssigneeServiceForm AssigneeServiceForm = PageFactory.initElements(driver, AssigneeServiceForm.class);
+			AssigneeServiceForm.Assignee_frame(driver);
+			// CreateAssignee.isPageOpen();
+
+			AssigneeServiceForm.clickelement_AS();
+
+			Assert.assertTrue(AssigneeServiceForm.Assignee_Documents());
+			LOGGER.logTestStep("Pass", "Succesfully added Assignee Document", AssigneeServiceForm.takesScreenshot());
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@Test(description = " TC--Description--> Wire Instructions", priority = 19, enabled = true, groups = {
+			"Regression", "Assignee" }, alwaysRun = true)
+	// enabled = true , false
+	public void tc19AssigneeWireInstructions() throws Exception {
+		try {
+			AssigneeServiceForm AssigneeServiceForm = PageFactory.initElements(driver, AssigneeServiceForm.class);
+			AssigneeServiceForm.Assignee_frame(driver);
+			AssigneeServiceForm.clickelement_AS();
+			AssigneeServiceForm.AssigneeWireInstructions();
+			AssigneeServiceForm.Save_frame(driver);
+			Assert.assertTrue(AssigneeServiceForm.Save());
+			LOGGER.logTestStep("Pass", "Successfully validated Wire Instructions",
+					AssigneeServiceForm.takesScreenshot());
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+	}
+
+	@AfterMethod(alwaysRun=true)
+	public void testResult(Method method, ITestResult result) throws Exception {
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		LOGGER.logEndTestCase(method.getName());
+		login = home.logout();
+		// Validation whether login is displaying or not
+
+		login.isPageOpen();
+		driver.quit();
+	}
+
+	@AfterTest
+	public void tearDown() throws Exception {
+
+	}
+
+	@AfterSuite
+	public void generateResult() {
+		try {
+			ExtentManager.getInstance().flush();
+		} finally {
+			ExtentManager.getInstance().close();
+		}
+
+	}
+
+	@DataProvider(name = "getClientData")
+	public Object[][] getAssigneeData() throws IOException {
+		String testDataPath = new File("Framework\\Test_Data\\TestData.xlsx").getCanonicalPath();
+		return DataLoaders.excelDataLoader(testDataPath, "SearchClient");
+	}
+}

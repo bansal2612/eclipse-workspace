@@ -1,0 +1,12 @@
+package com.testNG;
+
+import org.openqa.selenium.WebDriver;
+
+public class Utility {
+
+	
+	public void takeScreenShot(WebDriver driver, String ScreenshotName)
+	{
+		
+	}
+}

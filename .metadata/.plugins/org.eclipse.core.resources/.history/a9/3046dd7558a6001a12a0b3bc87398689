@@ -1,0 +1,22 @@
+package parser;
+
+public class Prac {
+	int i;
+	static {
+		System.out.println("Parent static");
+	}
+	Prac get()
+	{
+		return this;
+	}
+	void abc()
+	{
+		System.out.println("Parent");
+	}
+	public Prac1(int a) {
+		// TODO Auto-generated constructor stub
+		
+		System.out.println(a);
+	}
+
+}

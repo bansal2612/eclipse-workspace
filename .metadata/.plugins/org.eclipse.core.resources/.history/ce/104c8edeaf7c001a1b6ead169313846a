@@ -1,0 +1,249 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.uipages.HomePage;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.automation.uipages.ReportsPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestReports {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+	WebDriverWait wait;
+	Random rand;
+	// Change it to your default browser download location.
+	String downloadPath = System.getProperty("user.home") + File.separator + "Downloads";
+
+	@BeforeSuite(alwaysRun = true)
+	public void suiteSetup() {
+
+		try {
+			LOGGER = new LogMe(TestsClient.class);
+			TestConfig.getInstance().suiteSetup();
+		} catch (Exception e) {
+			LOGGER.logError("Exception " + e.getClass().getName() + " caught from suite setup method", e);
+		}
+
+	}
+
+	@BeforeMethod(alwaysRun = true)
+	public void startReporting(Method method) throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+		UIUtils.waitForPageLoad(driver);
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+		// Login into the application
+		login = PageFactory.initElements(driver, LoginPage.class);
+
+		// Validation whether login is displaying or not
+		Assert.assertTrue(login.isPageOpen());
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+				TestConfig.getDataConfig().getPropertyValue("secret"));
+		wait = new WebDriverWait(driver, Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+		rand = new Random();
+		LOGGER.logBeginTestCase(method.getName());
+		Assert.assertTrue(home.isPageOpen());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+
+	@Test(description = "Dynamic Report", enabled = true, priority = 1, groups = { "Regression",
+			"Reports" }, alwaysRun = true)
+	public void TC_01_Dynamic_Reports() throws Exception {
+		ReportsPage reportsPage = home.clickReports();
+		try {
+			Assert.assertTrue(reportsPage.isPageOpen());
+			LOGGER.logTestStep("PASS", "Report Page is opened");
+			wait.until(ExpectedConditions.numberOfElementsToBe(
+					TestConfig.getInstance().getObjRep().getLocator("RunReports", "PlusSign"), 14));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("RunReports", "Operational"));
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("RunReports", "AssigneeServices"))));
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("RunReports", "AssigneeServices"));
+			driver.switchTo().defaultContent();
+			Thread.sleep(10000);
+			reportsPage.get_rpt_criteria_fields();
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("RunReports", "DateRange"),
+					"text", "This Month");
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("RunReports", "DateType"),
+					"text", "Date Received");
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("rpt_criteria_hdr");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("RunReports", "Preview"));
+			LOGGER.logTestStep("PASS", "Preview Button is clicked");
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver,
+					By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe"))));
+			driver.switchTo().frame(UIUtils.findElement(driver,
+					By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe")));
+			UIUtils.dynamicWait(driver, By.xpath("//td[@id='did_counter']"), 60);
+			wait.until(ExpectedConditions.numberOfElementsToBe(By.tagName("tr"), 27));
+			driver.switchTo().defaultContent();
+			UIUtils.clickElement(driver, By.xpath("//a[@id='did_modbox_closer_1']"));
+			reportsPage.get_rpt_criteria_hdr();
+			UIUtils.clickElement(driver, By.xpath("//input[@value='Export']"));
+			LOGGER.logTestStep("PASS", "Export Button is clicked");
+			Thread.sleep(60000);
+			// Code to verify the downloaded files
+			Assert.assertTrue(UIUtils.verifyDownloadedFile(downloadPath, "SE_RPT_Assignee_Services"));
+			LOGGER.logTestStep("PASS", "Dynamic report is successfully downloaded");
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+			// TODO: handle exception
+		}
+
+	}
+
+	@Test(description = "Crystal Report", enabled = true, priority = 1, groups = { "Regression",
+			"Reports" }, alwaysRun = true)
+	public void TC_02_Crystal_Reports() throws Exception {
+		ReportsPage reportsPage = home.clickReports();
+		try {
+			Assert.assertTrue(reportsPage.isPageOpen(), "Reports page is not opened");
+			LOGGER.logTestStep("PASS", "Report Page is opened");
+			Thread.sleep(10000);
+			wait.until(ExpectedConditions.numberOfElementsToBe(
+					TestConfig.getInstance().getObjRep().getLocator("RunReports", "PlusSign"), 14));
+			UIUtils.clickElement(driver, By.xpath("//td[text()='Financial Management']"));
+			Thread.sleep(3000);
+			UIUtils.clickElement(driver, By.xpath("//a[text()='Accounts Payable Detail']"));
+			Thread.sleep(180000);
+			driver.switchTo().defaultContent();
+			reportsPage.get_criteria();
+			UIUtils.dynamicWait(driver, By.xpath("//select[@id='Operator5']"), 60);
+			Assert.assertTrue(UIUtils.findElement(driver, By.xpath("//select[@id='Operator5']")).isDisplayed());
+			LOGGER.logTestStep("Pass", "Accounts Payable Detail Report criteria displayed");
+			UIUtils.selectValue(driver, By.xpath("//select[@id='Operator5']"), "text", "Equal To");
+			Thread.sleep(1000);
+			UIUtils.inputText(UIUtils.findElement(driver, By.xpath("//input[@id='LowVal5']")), "1/1/2020");
+			UIUtils.selectValue(driver, By.xpath("//select[@id='Operator6']"), "text", "Equal To");
+			Thread.sleep(1000);
+			UIUtils.inputText(UIUtils.findElement(driver, By.xpath("//input[@id='LowVal6']")), "1/15/2020");
+			String parentWindowHandle = driver.getWindowHandle();
+			UIUtils.clickElement(driver, By.xpath("//input[@value='Run Report']"));
+			driver.switchTo().window(parentWindowHandle);
+			Set<String> windowHandles = driver.getWindowHandles();
+			Iterator<String> it = windowHandles.iterator();
+			while (it.hasNext()) {
+				String windowString = it.next();
+				if (windowString != parentWindowHandle) {
+					driver.switchTo().window(windowString);
+				} else
+					continue;
+			}
+			Thread.sleep(30000);
+			wait.until(ExpectedConditions.urlContains("Reporter/RptReporter.aspx"));
+			if (driver.getCurrentUrl().contains("Reporter/RptReporter.aspx")) {
+				UIUtils.dynamicWait(driver, By.xpath("//img[@id='IconImg_myCrystalReportViewer_toptoolbar_export']"),
+						100);
+				Assert.assertTrue(UIUtils
+						.findElement(driver, By.xpath("//img[@id='IconImg_myCrystalReportViewer_toptoolbar_export']"))
+						.isDisplayed());
+				LOGGER.logTestStep("Pass", "Reports Page is opened");
+				UIUtils.clickElement(driver, By.xpath("//img[@id='IconImg_myCrystalReportViewer_toptoolbar_export']"));
+				Thread.sleep(3000);
+				UIUtils.clickElement(driver, By.xpath("//img[contains(@id,'IconImg_iconMenu_arrow_bobjid')]"));
+				UIUtils.clickElement(driver, By.xpath("//span[text()='Microsoft Excel (97-2003) Data-Only']"));
+				UIUtils.clickElement(driver, By.xpath("//a[text()='Export']"));
+				Thread.sleep(10000);
+			} else {
+				LOGGER.logTestStep("FAIL", "Reports Page is not opened", reportsPage.takesScreenshot());
+			}
+
+			Assert.assertTrue(UIUtils.verifyDownloadedFile(downloadPath, "myCrystalReportViewer"));
+			Thread.sleep(2000);
+			driver.close();
+			driver.switchTo().window(parentWindowHandle);
+			LOGGER.logTestStep("PASS", "Crystal report is successfully downloaded");
+
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+			org.testng.Assert.fail("Fail: " + e.getMessage());
+		}
+
+	}
+
+	@AfterMethod(alwaysRun = true)
+	public void testResult(Method method, ITestResult result) throws Exception {
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		LOGGER.logEndTestCase(method.getName());
+		if (result.getStatus() == ITestResult.SUCCESS) {
+			login = home.logout();
+			login.isPageOpen();
+		}
+		driver.quit();
+	}
+
+	@AfterTest
+	public void tearDown() throws Exception {
+
+	}
+
+	@AfterSuite(alwaysRun = true)
+	public void generateResult() throws IOException {
+		try {
+			ExtentManager.getInstance().flush();
+		} finally {
+			ExtentManager.getInstance().close();
+		}
+		Runtime.getRuntime().exec("taskkill /F /IM chromedriver.exe /T");
+	}
+
+}

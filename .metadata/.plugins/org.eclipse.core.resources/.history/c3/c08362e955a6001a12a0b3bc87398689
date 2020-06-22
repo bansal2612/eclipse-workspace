@@ -1,0 +1,16 @@
+package parser;
+
+public class Prac1 extends Prac {
+
+	@Override
+	public void msg() throws ArithmeticException {
+		super.msg();
+		System.out.println("Child method");
+		
+		
+	}
+	public static void main(String[] args) {
+		Prac obj=new Prac();
+		obj.msg();
+	}
+}

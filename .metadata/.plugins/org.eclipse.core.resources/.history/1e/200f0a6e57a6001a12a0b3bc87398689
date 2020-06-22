@@ -1,0 +1,14 @@
+package parser;
+
+public class Prac {
+	int i;
+	Prac get()
+	{
+		return this;
+	}
+	abc()
+	{
+		System.out.println("Parent");
+	}
+
+}

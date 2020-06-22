@@ -1,0 +1,16 @@
+package jiraAPIS;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+import org.testng.annotations.Test;
+
+public class ExcelRead {
+
+	@Test
+	public void excelRead() throws FileNotFoundException
+	{
+		FileInputStream fs=new FileInputStream("C:\\Users\\Ankit Bansal\\Desktop\\TestDOC1.xslx");
+		
+	}
+}

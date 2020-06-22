@@ -1,0 +1,16 @@
+package parser;
+
+public class Prac1 extends Prac {
+
+	@Override
+	public void msg() {
+		super.msg();
+		System.out.println("Child method");
+		
+		
+	}
+	public static void main(String[] args) {
+		Prac1 obj=new Prac1();
+		obj.msg();
+	}
+}

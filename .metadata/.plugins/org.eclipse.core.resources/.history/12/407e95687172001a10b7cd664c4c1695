@@ -1,0 +1,116 @@
+package com.birlasoft.automation.uipages;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.utils.UIUtils;
+
+public class AdminPage extends AbstractPage {
+	static Logger LOGGER = Logger.getLogger(AdminPage.class);
+	WebDriverWait wWait;
+
+	public AdminPage(WebDriver driver) {
+		super(driver);
+		wWait = new WebDriverWait(driver,  Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+	}
+
+	public void closePopup() throws Exception {
+		WebElement popMainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopup")));
+		driver.switchTo().frame(popMainFrame);
+		WebElement topFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopMain")));
+		driver.switchTo().frame(topFrame);
+
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnOK"));
+
+		driver.switchTo().defaultContent();
+	}
+
+	@Override
+	public boolean isPageOpen() {
+		driver.switchTo().frame(wWait.until(ExpectedConditions.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("AdminRole", "mainPopup"))));
+		boolean isExist = UIUtils.isObjectExist(driver,TestConfig.getInstance().getObjRep().getLocator("AdminRole", "Roles"));
+		return isExist;
+	}
+	
+	//Method to enter into Work_bottom frame
+	public void getWork_bottom()
+	{
+		  driver.switchTo().defaultContent();
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		  driver.switchTo().frame("work");
+		  wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+	}
+	//Method to enter into work_top
+	public void getWork_top_Admin()
+	{
+	    
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[@name='work']"))));
+		driver.switchTo().frame("work");
+		wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[@name='work_top']"))));
+		driver.switchTo().frame("work_top");
+		
+	}
+	//Method to direct for myBarFrame
+		public void getMyBarFrame_Admin()
+		{
+			driver.switchTo().defaultContent();
+			wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("myBar");
+		}
+		public void get_cpTop()
+		{
+		 try {
+			 
+			 WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+			 driver.switchTo().frame(did_appframe_Element);
+			 WebElement frame_cpTop=driver.findElement(By.name("cp_top"));
+			 driver.switchTo().frame(frame_cpTop);
+			 Thread.sleep(5*1000);
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}
+		
+		public void getFrameDetail() {
+			try {
+				WebElement iframe_main=driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Admin", "PopUpFrame"));
+				wWait.until(ExpectedConditions.visibilityOf(iframe_main));
+				driver.switchTo().frame(iframe_main);
+				WebElement frame_detail=driver.findElement(By.name("frame_detail"));
+		        driver.switchTo().frame(frame_detail);
+		        Thread.sleep(5*1000);
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		
+		public void getWork_bottom_updated() {
+			try {
+				
+				 WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+				 driver.switchTo().frame(did_appframe_Element);
+				 WebElement work_Element=driver.findElement(By.name("work"));
+				 driver.switchTo().frame(work_Element);
+				 wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		         WebElement work_Bottom=driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"));
+		         driver.switchTo().frame(work_Bottom);
+				 Thread.sleep(5*1000);
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		
+}

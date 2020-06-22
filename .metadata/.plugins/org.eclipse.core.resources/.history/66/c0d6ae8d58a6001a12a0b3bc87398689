@@ -1,0 +1,34 @@
+package parser;
+
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+
+public class Prac1 extends Prac {
+	static {
+		System.out.println("test child");
+	}
+
+	int i=1;
+	Prac1  get()
+	{
+		return this;
+	}
+	
+	public void msg()
+	{
+		
+		System.out.println("Child");
+		System.out.println(super.i);
+		System.out.println(this.i);
+		
+	}
+	public Prac1(int a) {
+		// TODO Auto-generated constructor stub
+		
+		System.out.println(a);
+	}
+	public static void main(String[] args) {
+				
+	}
+	
+}

@@ -1,0 +1,12 @@
+package parser;
+
+
+
+public class Prac1 extends Prac {
+	
+	
+	public void get() {
+		System.out.println("child");
+		
+	}
+}

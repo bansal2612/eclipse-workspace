@@ -1,0 +1,59 @@
+package com.birlasoft.automation.uipages;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.utils.UIUtils;
+
+public class LoginPage extends AbstractPage {
+	WebDriverWait wait;
+	static Logger LOGGER = Logger.getLogger(LoginPage.class);
+
+	public LoginPage(WebDriver driver) {
+		super( driver);
+		// TODO Auto-generated constructor stub
+		wait=new WebDriverWait(driver, Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+	}
+  
+	@Override
+	public boolean isPageOpen() {
+		
+		
+		return UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"))
+				&& UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtPassword"))
+				&& UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "btnLogin"));
+		
+	}
+	
+	public HomePage login(String username , String password) throws Exception {
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"), username);
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtPassword"), password);
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "btnLogin"));
+		Thread.sleep(40000);
+		int i=1;
+		while(i<20000)
+		{
+		if(driver.getCurrentUrl().contains("appframe"))
+		{
+		wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='did_meterProgressBar']"))));
+		wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='did_meterProgressBar']"))));
+		break;
+
+		}
+		else
+		i=i+1;
+
+		}
+		return PageFactory.initElements(driver, HomePage.class);
+		}
+
+	
+	
+	
+
+}

@@ -1,0 +1,10 @@
+package parser;
+
+public class Prac1 extends Prac {
+
+	@Override
+	public void msg() throws Exception {
+		// TODO Auto-generated method stub
+		super.msg();
+	}
+}

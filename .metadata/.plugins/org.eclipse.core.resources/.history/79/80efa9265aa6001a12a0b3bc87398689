@@ -1,0 +1,10 @@
+package parser;
+
+public class Prac {
+	static final int i;
+	Prac()
+	{
+		i=10;
+	}
+
+}

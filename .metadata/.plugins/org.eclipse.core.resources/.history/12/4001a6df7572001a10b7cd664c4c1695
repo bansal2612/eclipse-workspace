@@ -1,0 +1,15 @@
+MINWAITTIME=4
+WAITTIME=30
+AVGWAITTIME=60
+GOODWAITTIME=60
+MAXWAITTIME=120
+DB=MYSQL
+DriverType=com.mysql.jdbc.Driver
+APIToken=1f103f80de1ee60ff52c4ebe5268bfab-53cbcddfa25909778cef28860a7a9af3
+PROXY=corpproxy.birlasoft.com:8080
+ChromeDriverPath=drivers/chromedriver.exe
+InternetExplorerDriverPath=drivers/IEDriverServer.exe
+GeckoDriverPath=drivers/geckodriver.exe
+ScriptTimeoutSeconds=25
+FailureRetryCount=0
+dateFormat=mm-dd-yyyy

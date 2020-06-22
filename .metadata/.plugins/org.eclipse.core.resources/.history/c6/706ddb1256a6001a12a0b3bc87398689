@@ -1,0 +1,12 @@
+package parser;
+
+public class Prac1 extends Prac {
+
+	 void msg()throws IOException{  
+		    System.out.println("TestExceptionChild");  
+		  }  
+	public static void main(String[] args) {
+		Prac obj=new Prac1();
+		obj.msg();
+	}
+}

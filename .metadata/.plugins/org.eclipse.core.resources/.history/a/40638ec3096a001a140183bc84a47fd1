@@ -1,0 +1,35 @@
+package com.birlasoft.automation.tests.reports;
+
+import java.io.File;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.testng.annotations.Test;
+
+public class TestVC {
+@Test
+public void abc()
+{
+File f=new File("C:\\Users\\Ankit Bansal\\Downloads");
+File[] file=f.listFiles();
+for (File file2 : file) {
+	if(file2.getName().contains("SE_RPT_Assignee_Services"))
+	{
+		System.out.println("filedownloaded");
+		file2.delete();
+		file2.
+	}
+	else
+	{
+		continue;
+	}
+}
+}
+}

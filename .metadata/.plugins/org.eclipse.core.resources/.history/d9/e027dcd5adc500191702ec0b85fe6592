@@ -1,0 +1,21 @@
+package tsystem;
+
+public class Test {
+
+	public void abc()
+	{
+		int[] a=new int[4];
+        for(int i=0;i<a.length;i++)
+        {
+        	a[i]=i+1;
+        	
+        }
+        for(int i=0;i<a.length;i++)
+        {
+        	System.out.println(a[i]);
+        }
+	}
+	public static void main(String[] args) {
+		new Test().abc();
+	}
+}

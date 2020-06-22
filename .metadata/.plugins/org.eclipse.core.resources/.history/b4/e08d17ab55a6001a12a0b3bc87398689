@@ -1,0 +1,14 @@
+package parser;
+
+public class Prac {
+	public void msg() throws ArithmeticException
+	{
+	try {
+System.out.println("parent method");
+	} catch (Exception e) {
+		// TODO: handle exception
+	}
+		
+	}
+
+}

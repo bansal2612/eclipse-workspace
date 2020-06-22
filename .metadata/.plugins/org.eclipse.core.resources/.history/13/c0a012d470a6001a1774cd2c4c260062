@@ -1,0 +1,15 @@
+package parser;
+
+public class GetChild {
+	public void abc()
+	{
+		System.out.println("Test");
+		
+	}
+	public static void main(String[] args) {
+		GetChild obj=new GetChild();
+		obj.abc();
+		
+	}
+
+}

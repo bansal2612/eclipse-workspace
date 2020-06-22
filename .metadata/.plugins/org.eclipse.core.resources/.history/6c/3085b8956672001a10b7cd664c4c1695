@@ -1,0 +1,92 @@
+package com.birlasoft.automation.uipages;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.utils.UIUtils;
+
+public class SirvaPage extends AbstractPage {
+	static Logger LOGGER = Logger.getLogger(SirvaPage.class);
+	WebDriverWait wWait;
+
+	public SirvaPage(WebDriver driver) {
+		super(driver);
+		wWait = new WebDriverWait(driver,  Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+	}
+
+	public void closePopup() throws Exception {
+		WebElement popMainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopup")));
+		driver.switchTo().frame(popMainFrame);
+
+		WebElement topFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopMain")));
+		driver.switchTo().frame(topFrame);
+
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnOK"));
+
+		driver.switchTo().defaultContent();
+	}
+
+	@Override
+	public boolean isPageOpen() {
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");	
+		boolean isExist = UIUtils.isObjectExist(driver,
+		TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"));
+		return isExist;
+	}
+	//Method to get Worktop frame
+	public void getWork_top_sirva()
+	{
+		
+		driver.switchTo().frame("did_appframe");
+		driver.switchTo().frame("did_structure_work_frame");
+		driver.switchTo().frame("work_top");	
+	
+	}
+	//Method to update the phone
+	public void getWork_top_sirva_update()
+	{
+		
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("did_structure_work_frame");
+		driver.switchTo().frame("work_top");	
+	
+	}
+	public void getWorkTop_updated()
+	{
+	 try {
+		 driver.switchTo().defaultContent();
+		 WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+		 driver.switchTo().frame(did_appframe_Element);
+		 WebElement work_Element=driver.findElement(By.name("work"));
+		 driver.switchTo().frame(work_Element);
+		 WebElement work_top_Element=driver.findElement(By.name("work_top"));
+		 driver.switchTo().frame(work_top_Element);
+		 Thread.sleep(5*1000);
+		
+	} catch (Exception e) {
+		// TODO: handle exception
+		e.printStackTrace();
+	}
+	}
+	
+
+
+	public void getWork_bottom() {
+		// TODO Auto-generated method stub
+		 driver.switchTo().defaultContent();
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		  driver.switchTo().frame("work");
+		  wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+	}
+	
+}

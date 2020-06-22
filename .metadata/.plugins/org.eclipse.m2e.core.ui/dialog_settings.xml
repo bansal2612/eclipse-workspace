@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="wizardPage">
+		<list key="groupId">
+			<item value="IHSMark"/>
+			<item value="PracTestNG"/>
+			<item value="WalletHubAssignment"/>
+			<item value="RestProjPrac"/>
+			<item value="restPracOnline"/>
+			<item value="restPractice"/>
+			<item value="Test"/>
+		</list>
+		<list key="name">
+		</list>
+		<list key="artifactId">
+			<item value="IHSMark"/>
+			<item value="PracTestNG"/>
+			<item value="WalletHubAssignment"/>
+			<item value="RestProjPrac"/>
+			<item value="restPracOnline"/>
+			<item value="restPractice"/>
+			<item value="Test"/>
+		</list>
+		<list key="version">
+			<item value="0.0.1-SNAPSHOT"/>
+		</list>
+	</section>
+	<section name="org.eclipse.m2e.core.pom.overview">
+	</section>
+	<section name="org.eclipse.m2e.core.pom.dependencies">
+	</section>
+	<section name="MavenProjectImportWizardPage">
+		<list key="rootDirectory">
+			<item value="D:\QE\QESharedWithKaan\SeSirvaAutFinal"/>
+			<item value="D:\QE\SeSirvaAutFinal-Apr06\SeSirvaAutFinal\SeSirvaAutFinal"/>
+			<item value="D:\QLab\QlabAutomation\SirvaQlab-master"/>
+			<item value="C:\Users\Ankit Bansal\Desktop\SeSirvaAutFinal"/>
+			<item value="C:\Users\Ankit Bansal\Desktop\SeSirvaAutFinal_27mar\SeSirvaAutFinal\SeSirvaAutFinal"/>
+			<item value="D:\QE\SeSirvaAutFinal27feb\SeSirvaAutFinal"/>
+			<item value="D:\QE\SeSirvaAut"/>
+			<item value="D:\WalletHubAssignment"/>
+			<item value="C:\Users\Ankit Bansal\eclipse-workspace\WalletHubAssignment"/>
+		</list>
+		<list key="projectNameTemplate">
+			<item value="[artifactId]"/>
+			<item value="[artifactId]-TRUNK"/>
+			<item value="[artifactId]-[version]"/>
+			<item value="[groupId].[artifactId]"/>
+			<item value="[groupId].[artifactId]-[version]"/>
+			<item value="[name]"/>
+		</list>
+	</section>
+</section>

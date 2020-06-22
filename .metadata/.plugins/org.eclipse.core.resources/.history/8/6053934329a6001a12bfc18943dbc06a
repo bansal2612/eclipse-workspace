@@ -1,0 +1,23 @@
+package parser;
+
+public class Prac {
+	static {
+		System.out.println("static block");
+	}
+	
+	int i,j;
+	public Prac() {
+		System.out.println("Test");
+		// TODO Auto-generated constructor stub
+	}
+	public Prac(int i,int j)
+	
+	{
+		this()
+		this.i=i;
+		this.j=j;
+	}
+	
+	
+
+}

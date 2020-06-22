@@ -1,0 +1,6 @@
+package parser;
+
+public class Prac {
+	void msg(){System.out.println("parent");}  
+
+}

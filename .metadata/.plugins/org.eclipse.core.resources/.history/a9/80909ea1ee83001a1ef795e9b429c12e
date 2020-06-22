@@ -1,0 +1,971 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestData;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.uipages.ClientsPage;
+import com.birlasoft.automation.uipages.HomePage;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.DataLoaders;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestsClient extends BaseTest {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+	WebDriverWait wait;	
+	Random rand;
+	
+	public final String sirvaImg=new File("Framework\\Test_Data\\Sirva.jpg").getAbsolutePath();
+    public final String sirvaImg2=new File("Framework\\Test_Data\\Sirva2.jpg").getAbsolutePath();
+    public final String sirvaImg3=new File("Framework\\Test_Data\\Sirva3.jpg").getAbsolutePath();
+
+    @BeforeSuite(alwaysRun=true)
+	public void setup() throws Exception {
+		LOGGER = new LogMe(TestFinance.class);
+		TestConfig.getInstance().suiteSetup();
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+	}
+
+	@BeforeMethod(alwaysRun=true)
+	public void startReporting(Method method) throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+		
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+		UIUtils.waitForPageLoad(driver);
+		try {
+			Robot robot = new Robot();
+			robot.keyPress(KeyEvent.VK_CONTROL);
+			robot.keyPress(KeyEvent.VK_0);
+			robot.keyRelease(KeyEvent.VK_CONTROL);
+		} catch (AWTException e) {
+
+		}
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+		login = PageFactory.initElements(driver, LoginPage.class);
+
+		// Validation whether login is displaying or not
+		login.isPageOpen();
+        
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+		TestConfig.getDataConfig().getPropertyValue("secret"));
+		wait=new WebDriverWait(driver, 80);
+		rand=new Random();
+		LOGGER.logBeginTestCase(method.getName());
+		Assert.assertTrue(home.isPageOpen());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+
+	
+      @Test(description = "Client Update test with email field only.",enabled = false,priority = 1,dataProvider = "getClientData", groups= {"Regression", "Client"}, alwaysRun=true)
+	  public void tc01_Client_ClientUpdate(String client, String clientNumber, String country, String status) throws Exception
+	    {		
+		   LOGGER.logInfo("Client Update test with email field only.");
+		   ClientsPage clientpage=home.clickClients();
+		   //Validation for Client page loading.
+		   try {
+			   Assert.assertTrue(clientpage.isPageOpen());
+			   LOGGER.logTestStep("PASS", "Client page is displaying properly");
+			   //Validation for Search result for client on the basis of given client name.
+			   Assert.assertTrue(clientpage.searchClient(client, clientNumber, country, status));
+			   LOGGER.logTestStep("PASS", "Client Profile is displayed");
+			   UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+			   Thread.sleep(20000);
+			   clientpage.getWork_top_perf();
+			   String email="updatedTestEmail" + rand.nextInt(1000) + "@sirva.com";
+			   UIUtils.inputText(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "email") , email);
+			   driver.switchTo().defaultContent();
+			   clientpage.getMyBarFrame_perf();
+			   UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save"));
+			   Thread.sleep(10000);
+			   driver.switchTo().defaultContent();
+			   clientpage.getWork_top_perf();
+			   //Validations for verifying the updated client email
+			   Assert.assertEquals(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "email")).getAttribute("value"), email, "Email is successfully Updated");
+			   LOGGER.logTestStep("PASS", "Client Profile updated",clientpage.takesScreenshot());
+		
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+            org.testng.Assert.fail("Fail: "+ e.getMessage());
+		}	  
+	}
+		
+	  @Test(description ="Add new Client", enabled=false, priority=2, groups= {"Regression","Client"}) 
+	  public void tc02_AddNewClient() throws Exception {
+	  LOGGER.logInfo("TC02_Add New Client test case started"); 
+	  ClientsPage clientpage=home.clickClients(); 
+	  try {
+		  Assert.assertTrue(clientpage.isPageOpen());
+		  UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "Addnew"));
+		  driver.switchTo().defaultContent();
+		  wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  clientpage.getWork_top_perf();
+		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Name"), TestData.getData("AddClient").get("Name").toString() + rand.nextInt(1000));
+		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Legal"), TestData.getData("AddClient").get("LegalName").toString() + rand.nextInt(1000));
+		  Thread.sleep(500);
+		  UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Accmanag"), "text", TestData.getData("AddClient").get("AccountManager").toString());
+		  Thread.sleep(500);
+		  UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Status"), "text", TestData.getData("AddClient").get("Status").toString());
+		  Thread.sleep(500);
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Begin"));
+		  UIUtils.waitUntilElementExists(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Currentdate"), 10);
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Currentdate"));
+		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Address1"), TestData.getData("AddClient").get("Address1").toString() + rand.nextInt(100));
+		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Address2"), TestData.getData("AddClient").get("Address2").toString() + rand.nextInt(100));
+		  Thread.sleep(500);
+		  UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Country"), "text", TestData.getData("AddClient").get("Country").toString());
+		  Thread.sleep(500);
+		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","City"), TestData.getData("AddClient").get("City").toString() + rand.nextInt(100));
+		  Thread.sleep(500);
+		  UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","State"), "text", TestData.getData("AddClient").get("State").toString());
+		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Postalcode"), TestData.getData("AddClient").get("PostalCode").toString());
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Masterfields"));
+		  Thread.sleep(3*1000);
+		  WebElement did_master_fields=driver.findElement(By.id("did_master_fields"));
+		  driver.switchTo().frame(did_master_fields);
+		  Thread.sleep(1000);
+		  UIUtils.selectValue(driver,TestConfig.getInstance().getObjRep().getLocator("Masterfields","SirvaBU"), "text", TestData.getData("AddClient").get("SirvaBuisnessUnit").toString());
+		  UIUtils.selectValue(driver,TestConfig.getInstance().getObjRep().getLocator("Masterfields","Financialsys"), "text", TestData.getData("AddClient").get("FinancialSystem").toString());
+		  Thread.sleep(2000);
+		  driver.switchTo().defaultContent();
+		  clientpage.getMyBarFrame_perf();
+		  UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save"));
+		  driver.switchTo().defaultContent();
+		  wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  clientpage.getWork_top_perf();
+		  wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//a[text()='Divisions']"))));	 
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient", "Clienttype"));
+		  Thread.sleep(10000);
+		  driver.switchTo().defaultContent();
+		    int i=1; 
+			  while(i<10000) 
+			  {
+				  if(driver.findElement(By.xpath("//div[@id='did_appframe_display']/preceding::div[@id='styled_popup_1']/div[@class='dmode_iframe_container']")).isDisplayed())
+				  {
+					  break;
+				  }
+				  else 
+					  i=i+1;
+			  
+			  }
+		  driver.switchTo().frame(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Main", "Modalxpath")));
+		  WebElement frame_detail=driver.findElement(By.name("frame_detail"));
+		  driver.switchTo().frame(frame_detail);
+		  i=1; 
+		  while(i<20000) 
+		  {
+			  if(driver.findElement(By.xpath("//label[text()='Client Connection Authorized']")).isDisplayed())
+			  {
+				  break;
+			  }
+			  else 
+				  i=i+1;
+		  
+		  }
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clienttype", "ConnectionAuthorized"));
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clienttype", "SirvaConnect"));
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clienttype", "SirvaConnectEmp"));
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clienttype", "OnlineExpenses"));
+		  driver.switchTo().parentFrame();
+		  WebElement frame_hdr=driver.findElement(By.name("frame_hdr"));
+		  driver.switchTo().frame(frame_hdr);
+		  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clienttype", "Okbutton"));
+		  Thread.sleep(10000);
+		  driver.switchTo().defaultContent();
+		  clientpage.getMyBarFrame_perf();
+	      UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save"));
+	      driver.switchTo().defaultContent();
+	      wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  Thread.sleep(10000);
+	      clientpage.getSummaryDetailsFrame();
+	      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient", "Finance"));
+	      driver.switchTo().defaultContent();
+	      wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+	      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Financetab", "Billing"));
+	      driver.switchTo().defaultContent();
+	      wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+		  Thread.sleep(5000);
+		  clientpage.getWork_top_perf();
+	      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Billing", "Active"));    
+	      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Billing", "Batchinvoice"));  
+	      Thread.sleep(500);
+	      UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Billing","Taxstatus"), "text", TestData.getData("AddClient").get("TaxStatus").toString());
+	      Thread.sleep(500);
+	      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Billing", "Paid"));   
+	      Thread.sleep(500);
+	      UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Billing","Terms"), "text", TestData.getData("AddClient").get("Terms").toString());
+	      Thread.sleep(500);
+	      UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Billing","Invoice"), "text", "Global Invoice Template1 (5.0.123)");
+	      Thread.sleep(500);
+	      driver.switchTo().defaultContent();
+	      clientpage.getMyBarFrame_perf();
+		  UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save"));  
+		  LOGGER.logTestStep("PASS", "New Client Added successfully.");
+		 
+	} catch (Exception e) {
+		LOGGER.logError("Fail: " + e.getMessage());
+        org.testng.Assert.fail("Fail: "+ e.getMessage());
+	} 
+	  }
+	  
+	  @Test(description="Add new Program", priority=3, enabled=false, groups= {"Regression","Client"})
+	  public void TC03_addProgram() throws Exception
+	  {
+		  LOGGER.logInfo("TC03_Add program test case started");
+		  ClientsPage clientpage=home.clickClients();
+		  //Validation for Client page is displayed
+		  try {
+			  Assert.assertTrue(clientpage.isPageOpen());
+			  LOGGER.logTestStep("PASS", "Client Page is displayed");
+			  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"), "Test Client New");
+			  driver.switchTo().defaultContent();
+		      clientpage.get_svc_select_btns_perf();
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch")); //ClientSearch 
+	          driver.switchTo().defaultContent();
+	          Thread.sleep(5000);
+			  clientpage.get_work_bottom_perf();
+	          //Validation for Client search result.
+	          Assert.assertTrue(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink")).isDisplayed(), "Not able to search client. Please retry");
+	          LOGGER.logTestStep("PASS", "Client search Result is coming properly");
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+	          driver.switchTo().defaultContent();
+	          clientpage.getSummaryButtons_perf();
+	          Thread.sleep(5*1000);
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient", "Programs"));
+	          Thread.sleep(5000);
+	          driver.switchTo().defaultContent();
+	          driver.switchTo().frame(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Newclient", "Addprogram")));
+	          Thread.sleep(3000);
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Addprogram"));
+	          Thread.sleep(20000);
+	          driver.switchTo().defaultContent();
+	          clientpage.mech_work_perf();
+	          //Validation of Program Mechanic displayed
+	          LOGGER.logTestStep("PASS", "Program Mechanic displayed successfully.");
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Programmech"));
+	          Thread.sleep(30000);
+	          driver.switchTo().defaultContent();
+	          clientpage.get_did_dmode_frame_2_perf();
+	          Thread.sleep(10000);
+	          int i=1;
+	          while(i<100000)
+	          {
+	        	  if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Programs", "Programcopy")).isDisplayed())
+	        	  {
+	        		  //Validation for Program copy window displayed
+	        		  LOGGER.logTestStep("PASS", "Program copy window displayed successfully.");
+	        		  break;
+	        	  }
+	        	  else 
+	        		  i=i+1;
+	          }
+	          UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Programcopy"), TestData.getData("AddClient").get("Programcopy").toString());
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Find"));
+	          Thread.sleep(4*1000);
+	          i=1;
+	          while(i<100000)
+	          {
+	        	  if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Programs", "Result")).isDisplayed())
+	        	  {
+	        		  break;
+	        	  }
+	        	  else 
+	        		  i=i+1;
+	          }
+	          
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Result"));
+	          Thread.sleep(5000);
+	          driver.switchTo().defaultContent();
+	          i=1;
+	          while(i<100000)
+	          {
+	        	  if(driver.findElement(By.xpath("//div[@id='did_se_confirm_div']//td[@id='did_confirm_buttons']/input[@value='Yes']")).isDisplayed())
+	        	  {
+	        		  break;
+	        	  }
+	        	  else 
+	        		  i=i+1;
+	          }
+	          UIUtils.clickElement(driver, By.xpath("//div[@id='did_se_confirm_div']//td[@id='did_confirm_buttons']/input[@value='Yes']"));
+	          Thread.sleep(10000);
+	          driver.switchTo().alert().accept();
+	          LOGGER.logTestStep("PASS", "Client Profile displayed");
+	          Thread.sleep(4000);
+	          driver.switchTo().defaultContent();
+	          clientpage.getSummaryButtons_perf();
+	  		  UIUtils.clickElement(driver, By.xpath("//td[contains(text(),'20th Century')]"));
+	  		  Thread.sleep(30000);
+	  		  driver.switchTo().defaultContent();
+	  		  clientpage.mech_work_perf();
+	  		  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "ProgramName"), TestData.getData("AddClient").get("Programname").toString() + rand.nextInt(1000));
+	          UIUtils.clickElement(driver, By.xpath("//td[contains(text(),'Active')]/following-sibling::td/input"));
+	          Thread.sleep(500);
+	          UIUtils.selectValue(driver, By.xpath("//td[contains(text(),'Program Type')]/following-sibling::td/select"), "text", TestData.getData("AddClient").get("Programtype").toString());
+	          Thread.sleep(500);
+	          UIUtils.inputText(driver, By.xpath("//td[contains(text(),'From')]/input"), UIUtils.getCurrentDate("MM/dd/yyyy"));
+	          UIUtils.getCurrentDate("MM/dd/yyyy");
+	          driver.switchTo().parentFrame();
+	          driver.switchTo().frame("mech_header");
+	          UIUtils.clickElement(driver, By.xpath("//input[@value='Save']"));
+	          wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Save"))));
+	          wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Print"))));
+	          driver.switchTo().parentFrame();
+	          driver.switchTo().frame("mech_work");
+	          wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//a[contains(text(),'Click here to preview')]"))));
+	          String name=driver.findElement(By.xpath("//td[contains(text(),'Program Name')]/following-sibling::td/input")).getAttribute("value") + "updated";
+	          UIUtils.inputText(driver, By.xpath("//td[contains(text(),'Program Name')]/following-sibling::td/input"), name);
+	          driver.switchTo().parentFrame();
+	          driver.switchTo().frame("mech_header");
+	          UIUtils.clickElement(driver, By.xpath("//input[@value='Save']"));
+	          wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Save"))));
+	          wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Print"))));
+	          WebElement close=wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@value='Close']")));
+	          close.click();
+	          Thread.sleep(10000);	
+	          driver.switchTo().defaultContent();
+	          wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//div[@id='did_appframe_display']/iframe"))));
+	          driver.switchTo().frame("cp_display");
+	          UIUtils.clickElement(driver, By.xpath("//span[text()='Assignee']"));
+	          driver.switchTo().defaultContent();
+	          clientpage.getWork_top_perf();
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "Addnew"));
+	          driver.switchTo().defaultContent();
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  clientpage.getWork_top_perf();
+	          UIUtils.inputText(driver.findElement(By.xpath("//input[@id='Text1']")), "John");
+	          UIUtils.inputText(driver.findElement(By.xpath("//input[@id='Text3']")), "Smith");
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("NewClient", "Clientlink"));
+	          Thread.sleep(5*1000);
+	          driver.switchTo().defaultContent();
+	          i=1; 
+			  while(i<10000) 
+			  {
+				  if(driver.findElement(By.xpath("//div[@id='did_appframe_display']/preceding::div[@id='styled_popup_1']/div[@class='dmode_iframe_container']")).isDisplayed())
+				  {
+					  break;
+				  }
+				  else 
+					  i=i+1;
+			  
+			  }
+			  clientpage.mech_work_did_dmode_frame_1_perf();
+			  UIUtils.inputText(driver.findElement(By.xpath("//td[starts-with(text(),'Client')]/preceding-sibling::td/input")), "Test Client New");
+			  driver.switchTo().parentFrame();
+			  driver.switchTo().frame("svc_select_btns");
+			  UIUtils.clickElement(driver, By.xpath("//input[@value='Search' and @name='button1']"));
+			  Thread.sleep(5000);
+			  driver.switchTo().parentFrame();
+			  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[starts-with(@name,'work_bottom') and contains(@src,'blank')]"))));
+			  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+			  Thread.sleep(4000);
+			  driver.switchTo().defaultContent();
+			  clientpage.getWork_top_perf();
+			  String toTest=name + " (Test Client New)";
+			  System.out.println(toTest);
+			  System.out.println(UIUtils.checkTextInDropdown(driver.findElement(By.xpath("//td[@id='did_program']/select")), toTest));
+			  //Validation for Program added in step 25 should be available in the drop down
+			  Assert.assertTrue(UIUtils.checkTextInDropdown(driver.findElement(By.xpath("//td[@id='did_program']/select")), toTest));
+			  LOGGER.logTestStep("PASS", "Newly added program is coming successfully");
+		
+			
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+            org.testng.Assert.fail("Fail: "+ e.getMessage());
+		}
+		  
+	  }
+	
+	  @Test(description=" Inactivate Program Add assignee", enabled=false, priority=4, groups= {"Regression","Client"})
+	  public void TC_04_Inactivate_Program_Add_assignee() throws Exception
+	  {
+		  LOGGER.logInfo("TC04_ Inactivate Program Add assignee");
+		  ClientsPage clientpage=home.clickClients();
+		  try {
+			  Assert.assertTrue(clientpage.isPageOpen());
+			  LOGGER.logTestStep("PASS", "Client page is displaying properly");
+			  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"), "Test Client New");
+			  driver.switchTo().defaultContent();
+		      clientpage.get_svc_select_btns_perf();
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch"));
+	          driver.switchTo().defaultContent();
+	          Thread.sleep(5000);
+	          clientpage.get_work_bottom_perf();
+	          //Validation for Client search result.
+	          Assert.assertTrue(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink")).isDisplayed(), "Not able to search client. Please retry");
+	          LOGGER.logTestStep("PASS", "Client Profile displayed successfully");
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+	          driver.switchTo().defaultContent();
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  clientpage.getSummaryButtons_perf();
+	          Thread.sleep(3*1000);
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "Testpolicy"));
+	          Thread.sleep(20000);
+	          driver.switchTo().defaultContent();
+	          clientpage.mech_work_perf();
+	          wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//textarea[@name='description']"))));
+	          String Policyname=UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "ProgramName")).getAttribute("value");
+	          //Validation of Program Mechanic displayed
+	          Assert.assertTrue(driver.findElement(By.xpath("//textarea[@name='description']")).isDisplayed(),"Error in displaying Program Mechanic: Program Mechanic displayed");
+	          LOGGER.logTestStep("PASS", "Program Mechanic displayed successfully.");
+	          //Validation for unchecking the Active checkbox on Test Policy
+	          if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Active")).isSelected()==true)
+	          {
+	        	  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Active"));
+	        	  LOGGER.logTestStep("PASS", "Program now inactive successfully.");
+	          }
+	          else
+	          {
+	        	  LOGGER.logTestStep("PASS", "Active checkbox was already un-checked",clientpage.takesScreenshot());
+	          }
+	          driver.switchTo().parentFrame();
+	          driver.switchTo().frame("mech_header");
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Save"));
+	          wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Save"))));
+	          wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Print"))));
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Close"));
+	          wait.until(ExpectedConditions.invisibilityOf(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Close"))));
+	          driver.switchTo().defaultContent();
+	          wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Main", "FirstIframe"))));
+	          driver.switchTo().frame("cp_display");
+	          wait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Common", "menuAssignee")));
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "menuAssignee"));
+	          driver.switchTo().defaultContent();
+	          clientpage.getWork_top_perf();
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "Addnew"));
+	          wait.until(ExpectedConditions.invisibilityOf(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "Addnew"))));
+	          driver.switchTo().defaultContent();
+	          clientpage.getWork_top_AddnewClient();
+	          wait.until(ExpectedConditions.visibilityOf(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("NewClient", "Clientlink"))));
+	          //Validation for Client link is clickable on New client page
+	          Assert.assertTrue(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("NewClient", "Clientlink")).isEnabled(), "Client Button is not clickable or either disabled");
+	          LOGGER.logTestStep("PASS", "Search Client is working correctly");
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("NewClient", "Clientlink"));
+	          Thread.sleep(3*1000);
+	          driver.switchTo().defaultContent();
+	          int i=1; 
+			  while(i<10000) 
+			  {
+				  if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("NewClient", "ClientModal")).isDisplayed())
+				  {
+					  break;
+				  }
+				  else 
+					  i=i+1;
+			  
+			  }
+			  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Main", "Modalxpath"))));
+			  WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+			  driver.switchTo().frame(did_appframe_Element);
+			  WebElement work_top=driver.findElement(By.name("work_top"));
+			  driver.switchTo().frame(work_top);
+			  UIUtils.inputText(driver.findElement(By.xpath("//td[starts-with(text(),'Client')]/preceding-sibling::td/input")), "Test Client New");
+			  driver.switchTo().parentFrame();
+			  Thread.sleep(3000);
+			  WebElement svc_select_btns=driver.findElement(By.name("svc_select_btns"));
+			  driver.switchTo().frame(svc_select_btns); 
+			  UIUtils.clickElement(driver, By.xpath("//input[@value='Search' and @name='button1']"));
+			  Thread.sleep(5000);
+			  driver.switchTo().parentFrame();
+			  wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[starts-with(@name,'work_bottom') and contains(@src,'blank')]"))));
+			  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[starts-with(@name,'work_bottom') and contains(@src,'blank')]"))));
+			  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+			  Thread.sleep(4000);
+			  driver.switchTo().defaultContent();
+			  clientpage.getWork_top_perf();
+			  Assert.assertFalse(UIUtils.checkTextInDropdown(driver.findElement(By.xpath("//td[@id='did_program']/select")), Policyname));
+			  LOGGER.logTestStep("PASS", " Inactivate Program Add assignee executed successfully",clientpage.takesScreenshot());
+			
+			
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+            org.testng.Assert.fail("Fail: "+ e.getMessage());
+		}  
+      }
+	  
+	  @Test(description="UpdateProgramServices", enabled=false, priority=5, groups= {"Regression","Client"})
+	  public void TC_05_UpdateProgramServices() throws Exception
+	  {
+		  
+		   ClientsPage clientpage=home.clickClients(); 
+		   try {
+		   Assert.assertTrue(clientpage.isPageOpen());
+		   LOGGER.logTestStep("PASS", "Client page is displaying properly");
+		   UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"), "Test Client New");
+		   driver.switchTo().defaultContent();
+		   clientpage.get_svc_select_btns_perf();
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch"));
+	       driver.switchTo().defaultContent();
+	       Thread.sleep(5000);
+	       clientpage.get_work_bottom_perf();
+	       //Validation for Client search result.
+	       Assert.assertTrue(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink")).isDisplayed(), clientpage.takesScreenshot());
+	       LOGGER.logTestStep("PASS", "Client Profile displayed successfully");
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+	       driver.switchTo().defaultContent();
+	       Thread.sleep(10000);
+	       clientpage.getSummaryButtons_perf();
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "TestpolicyUP"));
+	       LOGGER.logTestStep("PASS", "Clicked on Policy");
+	       Thread.sleep(20000);
+	       driver.switchTo().defaultContent();
+	       clientpage.mech_work_perf();
+	       LOGGER.logTestStep("PASS", "Program Mechanic displayed successfully.");
+	       driver.switchTo().parentFrame();
+	       driver.switchTo().frame(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "mechNavIframe")));
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "ServiceControlAcc"));
+	       wait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Setup")));
+	       Thread.sleep(10000);
+	       driver.switchTo().parentFrame();
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[@name='mech_work']"))));
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.xpath("//frame[@name='form_work']")));
+	       driver.switchTo().defaultContent();
+	       clientpage.mech_work_perf();
+	       wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[@name='form_work']"))));
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[@name='form_buttons']"))));
+	       wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//title[contains(text(),'SIRVA Gen3.71810 - Refresh Date')]")));
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Deleteservice"));
+	       Thread.sleep(3*1000);
+	       driver.switchTo().defaultContent();
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("DeleteService", "iframe"), 60)));
+	       Thread.sleep(5000);
+	       WebElement mainframe=driver.findElement(By.name("mainframe"));
+	       driver.switchTo().frame(mainframe);
+	       if(UIUtils.isElementPresent(driver, TestConfig.getInstance().getObjRep().getLocator("DeleteService", "Checkbox")))
+	       {
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("DeleteService", "Checkbox"));
+	       }
+	       driver.switchTo().parentFrame();
+	       WebElement title_buttons=driver.findElement(By.name("title_buttons"));
+	       driver.switchTo().frame(title_buttons);
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("DeleteService", "Okbutton"));
+	       Thread.sleep(10000);
+	       driver.switchTo().defaultContent();
+	       clientpage.mech_work_perf();
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[@name='form_buttons']"))));
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "AddService"));
+	       Thread.sleep(2000);
+	       driver.switchTo().defaultContent();
+	       LOGGER.logTestStep("PASS", "Add Service window displayed");
+	       if(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Addservice", "YesButton")).isDisplayed())
+	       {
+	    	   UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Addservice", "YesButton")).click();
+	       }
+	       Thread.sleep(10000);
+	       wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_2']/div[@class='dmode_iframe_container']/iframe"))));
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_2"));
+	       WebElement mainframe1=driver.findElement(By.name("mainframe"));
+	       driver.switchTo().frame(mainframe1);
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Addservice", "Access"));
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Addservice", "AssetManag"));
+	       driver.switchTo().parentFrame();
+	       driver.switchTo().frame(driver.findElement(By.name("title_buttons")));
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("DeleteService", "Okbutton"));
+	       Thread.sleep(2000);
+	       driver.switchTo().defaultContent();
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Addservice", "NoButton"));
+	       Thread.sleep(5000);
+	       driver.switchTo().defaultContent();
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//div[@id='styled_popup_1']/div[@class='dmode_iframe_container']/iframe"))));
+	       WebElement mechparent=driver.findElement(By.name("mechparent"));
+	       driver.switchTo().frame(mechparent);
+	       WebElement mech_header=driver.findElement(By.name("mech_header"));
+	       driver.switchTo().frame(mech_header);
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Close"));
+	       LOGGER.logTestStep("PASS", "Ancilliary and Asset Management Services added");
+	
+			
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+            org.testng.Assert.fail("Fail: "+ e.getMessage());
+		}       
+	  }
+	  
+	 	  
+	  @Test(description="Update_Program_Documents", enabled=false, priority=6, groups= {"Regression","Client"})
+	  public void TC_06_Update_Program_Documents() throws Exception
+	  {
+		  
+		   ClientsPage clientpage=home.clickClients(); 
+		   try {
+		   Assert.assertTrue(clientpage.isPageOpen());
+		   LOGGER.logTestStep("PASS", "Client page is displaying properly");
+		   UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"), "Test Client New");
+		   driver.switchTo().defaultContent();
+		   clientpage.get_svc_select_btns_perf();
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch")); //ClientSearch 
+	       driver.switchTo().defaultContent();
+	       Thread.sleep(5000);
+	       clientpage.get_work_bottom_perf();
+	       //Validation for Client search result.
+	       Assert.assertTrue(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink")).isDisplayed(), "Not able to search client. Please retry");
+	       LOGGER.logTestStep("PASS", "Client search Result is coming properly");
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+	       driver.switchTo().defaultContent();
+	       clientpage.getSummaryButtons_perf();
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "TestpolicyUP"));
+	       Thread.sleep(20000);
+	       driver.switchTo().defaultContent();
+	       clientpage.mech_work_perf();
+	       wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//textarea[@name='description']"))));
+	       Assert.assertTrue(driver.findElement(By.xpath("//textarea[@name='description']")).isDisplayed());
+	       LOGGER.logTestStep("PASS", "Program Mechanic displayed successfully.");
+	       driver.switchTo().parentFrame();
+	       driver.switchTo().frame(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "mechNavIframe")));
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Documents"));
+	       wait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Setup")));
+	       Thread.sleep(20000);
+	       driver.switchTo().parentFrame();
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[@name='mech_work']"))));
+	       driver.switchTo().defaultContent();
+	       clientpage.mech_work_perf();
+	       wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[@name='document_work']"))));
+	       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[@name='document_work']"))));
+	       int i=1;
+	       while(i<10000)
+	       {
+	    	   if(UIUtils.isElementPresent(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile")))
+	    	   {
+	    		   break;
+	    	   }
+	    	   else
+	    		   i=i+1;
+	       }
+	       
+	       if(UIUtils.isElementPresent(driver, By.xpath("//tbody/tr[@*='row']/td[@class='tdnopad checkSelector skinny']/input")))
+	       {
+	    	  LOGGER.logTestStep("PASS", "Previously Added Images exists so we need to delete.");
+	    	  List<WebElement> elements=driver.findElements(TestConfig.getInstance().getObjRep().getLocator("Fileupload", "Checkbox"));
+	    	  for (WebElement webElement : elements) {
+	    		 webElement.click();
+			}
+	    	  Thread.sleep(2000);
+	    	  UIUtils.clickElement(driver, By.xpath("//span[text()='Delete']"));
+	    	  Thread.sleep(2000);
+	    	  driver.switchTo().defaultContent();
+	    	  UIUtils.clickElement(driver,  TestConfig.getInstance().getObjRep().getLocator("Programs", "Yes"));
+	    	  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Yes"))));
+	    	  Thread.sleep(2000);
+	    	  i=1; 
+			  while(i<10000) 
+			  {
+				  if(driver.findElement(By.xpath("//div[@id='did_appframe_display']/preceding::div[@id='styled_popup_1']/div[@class='dmode_iframe_container']")).isDisplayed())
+				  {
+					  break;
+				  }
+				  else 
+					  i=i+1;
+			  
+			  }
+			  
+	    
+	          wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Main", "Modalxpath"))));
+	          driver.switchTo().frame(driver.findElement(By.name("mechparent")));
+	          driver.switchTo().frame(driver.findElement(By.name("mech_work")));
+	          driver.switchTo().frame(driver.findElement(By.name("document_work")));
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"))));
+	          
+	        }
+	        else
+	        {
+	    	   LOGGER.logTestStep("PASS", "No previously added file exists");
+	        }
+	       UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile")); 
+	       Thread.sleep(8000);
+	       clientpage.uploadFileRobot(sirvaImg);
+	       Thread.sleep(2000);
+	       clientpage.getDocument_work();
+		   clientpage.fill_DocumentUploadform("Description1", "select1");
+		   Thread.sleep(5000);
+		   wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"))));
+		   UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"));
+		   Thread.sleep(3000);
+		   clientpage.uploadFileRobot(sirvaImg2);
+		   clientpage.getDocument_work();
+		   clientpage.fill_DocumentUploadform("Description2", "select2");
+		   Thread.sleep(5000);
+		   wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"))));
+		   UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"));
+		   Thread.sleep(3000);
+		   clientpage.uploadFileRobot(sirvaImg3);
+		   clientpage.getDocument_work();
+		   clientpage.fill_DocumentUploadform("Description3", "select3");
+		   Thread.sleep(5000);
+		   wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"))));
+		   List<WebElement> allFilesElements=driver.findElements(TestConfig.getInstance().getObjRep().getLocator("Fileupload", "imgLinks"));
+		   for (WebElement webElement : allFilesElements) {
+			Assert.assertTrue(clientpage.toCheckWindowhandlesCount(driver, webElement, 2), clientpage.takesScreenshot());
+			LOGGER.logTestStep("PASS", "Document viewed as expected","Element is not clickable i.e having name as " + webElement.getText());
+			
+		   }
+		    List<WebElement> elements=driver.findElements(TestConfig.getInstance().getObjRep().getLocator("Fileupload", "Checkbox"));
+	    	  for (WebElement webElement : elements) 
+	    	  {
+	    		 webElement.click();
+			   }
+	    	  Thread.sleep(2000);
+	    	  UIUtils.clickElement(driver, By.xpath("//span[text()='Delete']"));
+	    	  Thread.sleep(2000);
+	    	  driver.switchTo().defaultContent();
+	    	  UIUtils.clickElement(driver,  TestConfig.getInstance().getObjRep().getLocator("Addservice", "NoButton"));
+	    	  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Yes"))));
+	    	  Thread.sleep(2000);
+	    	  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Main", "Modalxpath"))));
+	    	  driver.switchTo().frame(driver.findElement(By.name("mechparent")));
+	          driver.switchTo().frame(driver.findElement(By.name("mech_work")));
+	          driver.switchTo().frame(driver.findElement(By.name("document_work")));
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"))));
+	    	  UIUtils.clickElement(driver, By.xpath("//span[text()='Delete']"));
+	    	  Thread.sleep(2000);
+	    	  driver.switchTo().defaultContent();
+	    	  UIUtils.clickElement(driver,  TestConfig.getInstance().getObjRep().getLocator("Programs", "Yes"));
+	    	  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Programs", "Yes"))));
+	    	  Thread.sleep(2000);
+	    	  wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Main", "Modalxpath"))));
+	    	  driver.switchTo().frame(driver.findElement(By.name("mechparent")));
+	          driver.switchTo().frame(driver.findElement(By.name("mech_work")));
+	          driver.switchTo().frame(driver.findElement(By.name("document_work")));
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Documents", "DropFile"))));
+	    	  Assert.assertEquals(driver.findElements(TestConfig.getInstance().getObjRep().getLocator("Fileupload", "imgLinks")).size(), 0,clientpage.takesScreenshot());
+	    	  LOGGER.logTestStep("PASS", "Documents Deleted Successfully");
+	    	  driver.switchTo().parentFrame();
+	    	  driver.switchTo().parentFrame();
+	    	  driver.switchTo().frame(driver.findElement(By.name("mech_header")));
+	    	  UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Close"));
+	  
+			
+		} catch (Exception e) {
+			LOGGER.logError("Fail: " + e.getMessage());
+            org.testng.Assert.fail("Fail: "+ e.getMessage());
+			
+		}
+	 }
+
+	  @Test(description="ProgramMasterFields", priority=7, enabled=false, groups= {"Regression","Client"})
+	  public void TC_07_ProgramMasterFields() throws Exception
+	  {
+		  LOGGER.logInfo("TC07_ProgramMasterFields test case started");
+		  ClientsPage clientpage=home.clickClients();
+		  //Validation for Client page is displayed
+		  try {
+			  Assert.assertTrue(clientpage.isPageOpen());
+			  LOGGER.logTestStep("PASS", "Client Page is displayed");
+			  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"), "Test Client New");
+			  driver.switchTo().defaultContent();
+		      clientpage.get_svc_select_btns_perf();
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch")); //ClientSearch 
+	          driver.switchTo().defaultContent();
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  clientpage.get_work_bottom_perf();
+	          //Validation for Client search result.
+	          Assert.assertTrue(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink")).isDisplayed(), "Not able to search client. Please retry");
+	          LOGGER.logTestStep("PASS", "Client search Result is coming properly");
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+	          driver.switchTo().defaultContent();
+	          clientpage.getSummaryDetailsFrame_perf();
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "MasterfieldsSidemenu"));
+	          Thread.sleep(2000);
+	          driver.switchTo().defaultContent();
+	          driver.switchTo().frame(driver.findElement(By.xpath("//iframe[@id='did_task_gadget_iframe']")));
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "MasterfieldProgram"));
+	          driver.switchTo().defaultContent();
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  LOGGER.logTestStep("PASS", "Program Page is opened Successfully");
+			  clientpage.getWork_top_perf();
+			  if(!UIUtils.isAttribtuePresent(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "AssigneeSurvey")), "checked"))
+			  {
+				 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "AssigneeSurvey"));
+				  
+			  }
+			  Thread.sleep(2000);
+			  if(!UIUtils.isAttribtuePresent(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "OnlineExpensescheck")), "checked"))
+			  {
+				 UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "OnlineExpensescheck"));
+				  
+			  }
+			  Thread.sleep(2000);
+			  driver.switchTo().defaultContent();
+		      clientpage.getMyBarFrame_perf();
+			  UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save")); 
+			  driver.switchTo().defaultContent();
+	          wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			  clientpage.getSummaryButtons_perf();
+			  Thread.sleep(3*1000);
+	          UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("TestClientNew", "TestpolicyUP"));
+	          Thread.sleep(20000);
+		      driver.switchTo().defaultContent();
+		      clientpage.get_mech_navigate_perf();
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "MasterFields"));
+		      wait.until(ExpectedConditions.elementToBeClickable(TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Setup")));
+		      Thread.sleep(4000);
+		      LOGGER.logTestStep("PASS", "Master Fields Page is opened");
+		      driver.switchTo().parentFrame();
+		      driver.switchTo().frame(driver.findElement(By.name("mech_work")));
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Masterfields", "Addnew"));
+		      driver.switchTo().defaultContent();
+		      Thread.sleep(10000);
+		      clientpage.get_frame_detail();
+		      UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Masterfields", "NewItemName")), " Test MFs");
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("EditMasterFields","Date"));
+		      UIUtils.waitUntilElementExists(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Currentdate"), 10);
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient","Currentdate"));
+		      Thread.sleep(2000);
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Masterfields","UnassignedPlus"));
+		      driver.switchTo().parentFrame();
+		      driver.switchTo().frame(driver.findElement(By.name("frame_hdr")));
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Fileupload","Okbutton"));
+		      LOGGER.logTestStep("PASS", "Master Fields is added successfully");
+		      Thread.sleep(5000);
+		      driver.switchTo().defaultContent();
+		      clientpage.get_mech_navigate_perf();
+		      driver.switchTo().parentFrame();
+		      driver.switchTo().frame(driver.findElement(By.name("mech_header")));
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy","Close"));
+		      LOGGER.logTestStep("PASS", "Master Files Test case is executed successfully");
+		      
+			  
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			LOGGER.logError("Fail: " + e.getMessage());
+            org.testng.Assert.fail("Fail: "+ e.getMessage());
+		}
+	  }
+
+	  @Test(description="ProgramMasterFields", priority=7, enabled=true, groups= {"Regression","Client"})
+	  public void TC_08_ProgramMasterFields() throws Exception
+	  {
+		  LOGGER.logInfo("TC07_ProgramMasterFields test case started");
+		  ClientsPage clientpage=home.clickClients();
+		  //Validation for Client page is displayed
+		  try {
+			  Assert.assertTrue(clientpage.isPageOpen());
+			  LOGGER.logTestStep("PASS", "Client page is displaying properly");
+			  UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "txtClient"), "Test Client New");
+			  driver.switchTo().defaultContent();
+			  clientpage.get_svc_select_btns_perf();
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "btnSearch"));
+		      driver.switchTo().defaultContent();
+		      Thread.sleep(5000);
+		      clientpage.get_work_bottom_perf();
+		      //Validation for Client search result.
+		      Assert.assertTrue(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink")).isDisplayed(), clientpage.takesScreenshot());
+		      LOGGER.logTestStep("PASS", "Client Profile displayed successfully");
+		      UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+		      driver.switchTo().defaultContent();
+		      int i=0;
+				while(i<20000)
+				{
+				if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Common", "Loader")).isDisplayed())
+				{
+					i=i+1;
+					
+					
+				}
+				else
+				{
+					break;
+				}
+				}
+				clientpage.getSummaryButtons_perf();
+		        Thread.sleep(5*1000);
+		        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Newclient", "Programs"));
+		          
+		       
+			  
+			   
+		  } catch (Exception e) {
+				// TODO: handle exception
+				LOGGER.logError("Fail: " + e.getMessage());
+	            org.testng.Assert.fail("Fail: "+ e.getMessage());
+			}
+		  }
+	  
+	  @AfterMethod(alwaysRun = true)
+	  public void testResult(Method method, ITestResult result) throws Exception {
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		
+		  LOGGER.logEndTestCase(method.getName()); 
+		  if(result.getStatus() == ITestResult.SUCCESS) {
+			  login = home.logout();
+              login.isPageOpen();
+       }
+       driver.quit(); 
+	}
+
+	@AfterTest(alwaysRun = true)
+	public void tearDown() throws Exception {
+		
+	}
+
+	
+	@DataProvider(name = "getClientData")
+	public Object[][] getAssigneeData() throws IOException {
+		String testDataPath = new File("Framework\\Test_Data\\TestData.xlsx").getCanonicalPath();
+		return DataLoaders.excelDataLoader(testDataPath, "SearchClient");
+	}
+}

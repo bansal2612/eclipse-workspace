@@ -1,0 +1,45 @@
+package testINT;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.GeckoDriverInfo;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+
+public class BaseClass {
+	
+	public WebDriver driver;
+	@BeforeMethod
+	@Parameters("browser")
+	public void driverInst(String browserName)
+	{
+		if(browserName.equalsIgnoreCase("chrome"))
+		{
+			System.setProperty("webdriver.chrome.driver", "D:\\Birlasoft\\QLab\\SeSirvaAutFinal\\drivers\\chromedriver.exe");
+			driver=new ChromeDriver();
+			
+		}
+		else if(browserName.equalsIgnoreCase("firefox"))
+		{
+			System.setProperty("webdriver.gecko.driver", "D:\\python\\drivers\\geckodriver-v0.26.0-win64\\geckodriver.exe");
+			driver=new FirefoxDriver();
+		}
+		
+		driver.manage().window().maximize();
+	}
+	@Test
+	public void getTest()
+	{
+		driver.get("http://www.google.com");
+		
+	}
+	@AfterMethod()
+	public void afterTest()
+	{
+		driver.quit();
+		
+	}
+}

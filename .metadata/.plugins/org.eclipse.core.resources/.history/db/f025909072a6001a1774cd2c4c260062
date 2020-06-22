@@ -1,0 +1,12 @@
+package parser;
+
+public interface PracInt {
+private static void name() {
+	System.out.println("testMethod");
+}
+default void abc()
+{
+PracInt.name();
+System.out.println("test");	
+}
+}

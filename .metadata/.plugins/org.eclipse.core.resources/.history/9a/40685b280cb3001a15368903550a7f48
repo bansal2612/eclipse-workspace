@@ -1,0 +1,7 @@
+package com.testNG;
+
+public interface Inter {
+	
+	abc();
+
+}

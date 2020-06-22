@@ -1,0 +1,987 @@
+package com.birlasoft.automation.uipages;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.UIUtils;
+
+public class FinancePage extends AbstractPage {
+	static Logger LOGGER = Logger.getLogger(FinancePage.class);
+	private static final int WAITTIME = 1;
+	WebDriverWait wWait;
+
+	public FinancePage(WebDriver driver) {
+		super(driver);
+	}
+
+	public void closePopup() throws Exception {
+		WebElement popMainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopup")));
+		driver.switchTo().frame(popMainFrame);
+
+		WebElement topFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopMain")));
+		driver.switchTo().frame(topFrame);
+
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnOK"));
+
+		driver.switchTo().defaultContent();
+	}
+
+	@Override
+	public boolean isPageOpen() {
+		WebElement mainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameMain")));
+		driver.switchTo().frame(mainFrame);
+
+		WebElement workFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameWork")));
+		driver.switchTo().frame(workFrame);
+
+		WebElement workTopFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameWorkTop")));
+		driver.switchTo().frame(workTopFrame);
+
+		// TODO - ADD logic
+		boolean isExist = false;
+
+		driver.switchTo().defaultContent();
+		return isExist;
+	}
+
+	public boolean navigateToAssigneeFolder() {
+		try {
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_cp_display");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "AssigneeFolder"));
+			Thread.sleep(5 * 1000);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean navigateToClientFolder() {
+		try {
+			/*
+			 * driver.switchTo().defaultContent(); WebDriverWait wait = new
+			 * WebDriverWait(driver, WAITTIME);
+			 * wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe")
+			 * );
+			 */
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_cp_display");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "ClientsFolder"));
+			Thread.sleep(5 * 1000);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean navigateToFinanceFolder() {
+		try {
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_cp_display");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "FinanceFolder"));
+			Thread.sleep(5 * 1000);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean searchClient(String client) {
+		driver.switchTo().parentFrame();
+		driver.switchTo().frame("did_structure_work_frame");
+		driver.switchTo().frame("work_top");
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "Client"), client);
+		driver.switchTo().parentFrame();
+		driver.switchTo().frame("svc_select_btns");
+		try {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "SearchBtn"));
+			Thread.sleep(5 * 1000);
+			driver.switchTo().parentFrame();
+			List<WebElement> frames = driver.findElements(By.tagName("frame"));
+			for (WebElement frame : frames) {
+				if (frame.getAttribute("name").contains("work_bottom")) {
+					driver.switchTo().frame(frame.getAttribute("name"));
+					UIUtils.clickElement(driver,
+							TestConfig.getInstance().getObjRep().getLocator("Assignee", "ProgramRow", client));
+					Thread.sleep(5 * 1000);
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean viewReport(Map<String, String> testData, LogMe LOGGER) {
+		driver.switchTo().defaultContent();
+		WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+		//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("summaryDetails");
+		try {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "Receipts"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "ViewReceipts"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "FromDate"));
+			UIUtils.enterText(driver, "1/1/2020");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "ToDate"));
+			UIUtils.enterText(driver, UIUtils.getCurrentDate());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+			Thread.sleep(5 * 1000);
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "ReceiptLink"));
+			LOGGER.logTestStep("Pass", "Client Receipt displayed", takesScreenshot());
+			driver.switchTo().defaultContent();
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "DetailLink"));
+			Thread.sleep(5 * 1000);
+			LOGGER.logTestStep("Pass", "Client Invoice Receipt Detail screen displayed", takesScreenshot());
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean applyReport(Map<String, String> testData, LogMe LOGGER) {
+		driver.switchTo().defaultContent();
+		WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		driver.switchTo().frame("summaryDetails");
+		try {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "Receipts"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "ApplyReceipts"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+			Thread.sleep(5 * 1000);
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "BilledTo"));
+			LOGGER.logTestStep("Pass", "Client Receipt displayed", takesScreenshot());
+			Thread.sleep(5 * 1000);
+			driver.switchTo().defaultContent();
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "PaymentMethod"));
+			UIUtils.enterText(driver, testData.get("PaymentMethod").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "DocumentNo"));
+			UIUtils.enterText(driver, "12345");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "DocumentDate"));
+			UIUtils.enterText(driver, UIUtils.getCurrentDate());
+			String outstandingAmt = UIUtils.getText(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Finance", "OutstandingAmt"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "AmountReceived"));
+			UIUtils.enterText(driver, outstandingAmt);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "FinDate"));
+			UIUtils.enterText(driver, UIUtils.getCurrentDate());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "DepDate"));
+			UIUtils.enterText(driver, UIUtils.getCurrentDate());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "AutoApply"));
+
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("myBar");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "SaveBtn"));
+
+			driver.switchTo().defaultContent();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "InvNo"));
+
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			String invNumber = UIUtils.getText(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Finance", "DetailLink"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "DetailLink"));
+
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("work");
+			UIUtils.scrollIntoViewHeight(driver, null);
+			String netInvTotal = UIUtils.getText(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Finance", "NetInvTotal"));
+			if ("$0.00".equalsIgnoreCase(netInvTotal)) {
+				LOGGER.logTestStep("Pass", "Net Invoice Total is 0", takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Net Invoice Total is not 0", takesScreenshot());
+				return false;
+			}
+			driver.switchTo().defaultContent();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "ClosePopup"));
+			UIUtils.clickElement(driver, By.xpath("//*[@id='did_summary_dimmer_in']"));
+
+			driver.switchTo().defaultContent();
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("summaryDetails");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "Invoices"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "FindInv"));
+
+			driver.switchTo().defaultContent();
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "InvText"));
+			UIUtils.enterText(driver, invNumber);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame");
+
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Program", "POLink", invNumber));
+			Thread.sleep(3 * 1000);
+
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "StatusPaid"));
+			UIUtils.scrollIntoViewHeight(driver, null);
+			String amtDue = UIUtils.getText(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Finance", "AmtDue"));
+			if ("$0.00".equalsIgnoreCase(amtDue)) {
+				LOGGER.logTestStep("Pass", "Amount Due is 0", takesScreenshot());
+			} else {
+				LOGGER.logTestStep("Fail", "Amount Due is not 0", takesScreenshot());
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean navigatetoFinanceLinkRunBatchFromClient(Map<String, String> testData, LogMe LOGGER) {
+		String pattern = "yyyy-MM-dd-HH-mm";
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+		String date = simpleDateFormat.format(new Date());
+		String batchDescription = "Test Batch " + date;
+		driver.switchTo().defaultContent();
+		WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+		//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("summaryDetails");
+		try {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "FinanceLink"));
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+			frame = driver.findElement(By.id("did_task_gadget_iframe"));
+			driver.switchTo().frame(frame);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "RunBatchLink"));
+			Thread.sleep(5 * 1000);
+			driver.switchTo().defaultContent();
+			frame = driver.findElement(By.id("did_dmode_frame_1"));
+			driver.switchTo().frame(frame);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("form_select");
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Clients", "BatchInvDescription"));
+			UIUtils.clearAndEnterText(driver, batchDescription);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "InvPrintType"));
+			UIUtils.enterText(driver, "All Invoices In One File");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "InvIncludeSub"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "InvFinEndDate"));
+			UIUtils.clearDate(driver, UIUtils.getMonthEndDate());
+			LOGGER.logTestStep("Pass", "Adding Invoice", takesScreenshot());
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("title_buttons");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "InvSubmitBtn"));
+			driver.switchTo().defaultContent();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "InvNo"));
+			Thread.sleep(15 * 1000);
+			driver.switchTo().alert().accept();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("summaryDetails");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "FinanceLink"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Clients", "BatchMaintenance"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("BatchInv", "FromDate"));
+			UIUtils.clearDate(driver, UIUtils.getCurrentDate());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("BatchInv", "ToDate"));
+			UIUtils.clearDate(driver, UIUtils.getMonthEndDate());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+			Thread.sleep(10 * 1000);
+			LOGGER.logTestStep("Pass", "Batach searched", takesScreenshot());
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "ViewLink"));
+			Thread.sleep(10 * 1000);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean adhocJournal(Map<String, String> testData, LogMe LOGGER) {
+		String pattern = "yyyy-MM-dd-HH-mm";
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+		String date = simpleDateFormat.format(new Date());
+		String text = "Test Ref " + date;
+		WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+		// wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("summaryDetails");
+		try {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "FinanceLink"));
+			Thread.sleep(2000);
+			driver.switchTo().defaultContent();
+			// wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+			driver.switchTo().frame("did_task_gadget_iframe");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "BillingLedger"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().defaultContent();
+			// wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("did_appframe");
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AddNew"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().defaultContent();
+			// wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("did_dmode_frame_1");
+			driver.switchTo().frame("form_select");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "FinXferType"));
+			UIUtils.clearDate(driver, "A/R Invoice");
+			Thread.sleep(1000);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "FileSelect"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_2"));
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame_selcus");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "CustLink"));
+			Thread.sleep(5 * 1000);
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("form_select");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "ProgramId"));
+			UIUtils.downArrowKey(driver, 1);
+			Thread.sleep(1000);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "ServiceId"));
+			UIUtils.downArrowKey(driver, 1);
+			Thread.sleep(1000);
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "Ref_Nbr"), text);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "DbtActMaster"));
+			UIUtils.clearAndEnterText(driver, "1010 - Lump Sum");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "CrdtAmtMaster"));
+			UIUtils.clearAndEnterText(driver, "20000 - Receivable Account");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "TransAmt"));
+			UIUtils.clearAndEnterText(driver, "500");
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("title_buttons");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "OKBtn"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().defaultContent();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "InvNo"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "TransStatus"));
+			UIUtils.clearAndEnterText(driver, "Posted");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "BeginDate"));
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Assignee", "ProgramRow", UIUtils.getTodayDate()));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "EndDate"));
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Assignee", "ProgramRow", UIUtils.getTodayDate()));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Finance", "AdhocLink"));
+			Thread.sleep(3 * 1000);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean navigatetoFinanceLinkFromClientAddInvoice() {
+		driver.switchTo().defaultContent();
+		WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+		//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("summaryDetails");
+		try {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "FinanceLink"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_task_gadget_iframe"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "FindAdd"));
+
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AddNew"));
+			Thread.sleep(3 * 1000);
+
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "CheckBox"));
+			Thread.sleep(3*1000);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "OkBtn"));
+			Thread.sleep(3*1000);
+			
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "Comment"),
+					"Invoice comments test");
+
+			driver.switchTo().parentFrame();
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("myBar");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "SaveBtn"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("menuBar");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "SendBtn"));
+			Thread.sleep(5 * 1000);
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Clients", "SendBtnOnPopup"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().alert().accept();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean searchAndNavigateToFile(String fileNumber) {
+		driver.switchTo().defaultContent();
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "FileNumberTxt"),
+				fileNumber);
+		driver.switchTo().parentFrame();
+		driver.switchTo().frame("svc_select_btns");
+		try {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Assignee", "SearchBtn"));
+			Thread.sleep(5 * 1000);
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("work_bottom");
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Assignee", "ProgramRow", fileNumber));
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean navigateToPayments() {
+		try {
+			Thread.sleep(5 * 1000);
+			driver.switchTo().defaultContent();
+			WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("summaryButtons");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "ProgramName"));
+			driver.switchTo().defaultContent();
+			Thread.sleep(5 * 1000);
+			driver.switchTo().frame("did_task_gadget_iframe");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "Payments"));
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean navigateToFees() {
+		try {
+			driver.switchTo().defaultContent();
+			WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("summaryButtons");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "ProgramName"));
+			driver.switchTo().defaultContent();
+			Thread.sleep(5 * 1000);
+			driver.switchTo().frame("did_task_gadget_iframe");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "Fees"));
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean searchAndnavigateToPO(String poNumber) {
+		try {
+			Thread.sleep(5*1000);
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("work");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PONumber"), poNumber);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POSearchBtn"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("result_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POLink", poNumber));
+			Thread.sleep(10 * 1000);
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("work");
+			driver.switchTo().frame("work_top");
+			UIUtils.highLightElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PayablesWorksheet"));
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public void addNewPO(Map<String, String> testData, LogMe LOGGER) {
+		try {
+			driver.switchTo().defaultContent();
+			WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("work");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AddNew"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().defaultContent();
+			wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("work");
+			driver.switchTo().frame("work_top");
+
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PayeeType"));
+			UIUtils.enterText(driver, testData.get("PayeeType").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PayTo"));
+			UIUtils.enterText(driver, testData.get("PayTo").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "Service"));
+			UIUtils.enterText(driver, testData.get("Service").toString());
+
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "DR", "1"));
+			UIUtils.enterText(driver, testData.get("DR1").toString());
+
+			populatePoDetails("1", testData.get("Amt1").toString(), testData.get("ConfirmationMsg").toString(),
+					testData.get("Status1").toString(), testData.get("Status2").toString(),
+					testData.get("FinalStatus").toString(), LOGGER, false, testData.get("EuroCurr").toString());
+			driver.switchTo().defaultContent();
+			wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("menuBar");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AddLine"));
+
+			driver.switchTo().defaultContent();
+			wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("work");
+			driver.switchTo().frame("work_top");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "DR", "2"));
+			UIUtils.enterText(driver, testData.get("DR2").toString());
+
+			populatePoDetails("2", testData.get("Amt2").toString(), testData.get("ConfirmationMsg").toString(),
+					testData.get("Status1").toString(), testData.get("Status2").toString(),
+					testData.get("FinalStatus").toString(), LOGGER, false, testData.get("EuroCurr").toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void addNewPOWithCurrencyChange(Map<String, String> testData, LogMe LOGGER) {
+		try {
+			driver.switchTo().defaultContent();
+			WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("work");
+			driver.switchTo().frame("work_top");
+			driver.switchTo().frame("criteria_frame");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AddNew"));
+			Thread.sleep(3 * 1000);
+			driver.switchTo().defaultContent();
+			wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("work");
+			driver.switchTo().frame("work_top");
+
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PayeeType"));
+			UIUtils.enterText(driver, testData.get("PayeeType").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PayTo"));
+			UIUtils.enterText(driver, testData.get("PayTo").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "Service"));
+			UIUtils.enterText(driver, testData.get("Service").toString());
+
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "DR", "1"));
+			UIUtils.enterText(driver, testData.get("DR1").toString());
+
+			populatePoDetails("1", testData.get("Amt1").toString(), testData.get("ConfirmationMsg").toString(),
+					testData.get("Status1").toString(), testData.get("Status2").toString(),
+					testData.get("FinalStatus").toString(), LOGGER, true, testData.get("EuroCurr").toString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void addFees(Map<String, String> testData, LogMe LOGGER) {
+
+		String pattern = "yyyy-MM-dd-HH-mm";
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+		String date = simpleDateFormat.format(new Date());
+		String feeName = "Test Fee " + date;
+
+		try {
+			driver.switchTo().defaultContent();
+			WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			WebElement frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AddNewFees"));
+			Thread.sleep(5*1000);
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("frame_detail");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "FeeName"));
+			UIUtils.clearAndEnterText(driver, feeName);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "DebitAct"));
+			UIUtils.clearAndEnterText(driver, testData.get("DebitAct").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "CreditAct"));
+			UIUtils.clearAndEnterText(driver, testData.get("CreditAct").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "FeeAmt"));
+			UIUtils.clearAndEnterText(driver, testData.get("FeeAmt").toString());
+			Thread.sleep(1 * 1000);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PostNow"));
+			driver.switchTo().defaultContent();
+			LOGGER.logTestStep("Pass", "Adding fee", takesScreenshot());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "YesBtn"));
+			driver.switchTo().defaultContent();
+			//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			frame = driver.findElement(By.id("did_appframe"));
+			driver.switchTo().frame(frame);
+			driver.switchTo().frame("did_structure_work_frame");
+			driver.switchTo().frame("work_top");
+			UIUtils.clickElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Assignee", "ProgramRow", "Start Date"));
+			Thread.sleep(1 * 1000);
+			UIUtils.highLightElement(driver,
+					TestConfig.getInstance().getObjRep().getLocator("Program", "POLink", feeName));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private String getStatus() {
+		WebDriverWait wait;
+		driver.switchTo().defaultContent();
+		wait = new WebDriverWait(driver, WAITTIME);
+		//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");
+		UIUtils.highLightElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "POStatusBar"));
+		String text = UIUtils.getElementInnerText(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Program", "POStatusBar"));
+		String[] str2 = text.split("Status:");
+		return str2[1].trim();
+	}
+
+	private void populatePoDetails(String iteration, String amount, String msgFromTestData, String status1,
+			String status2, String finalStatus, LogMe LOGGER, boolean changeCurrency, String euroCurr)
+			throws Exception, InterruptedException {
+		WebDriverWait wait;
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AuthDate", iteration),
+				UIUtils.getCurrentDate());
+		UIUtils.enterTab(driver);
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "AuthRef", iteration),
+				"auth reference");
+		Actions actions = new Actions(driver);
+		WebElement elementLocator = driver
+				.findElement(TestConfig.getInstance().getObjRep().getLocator("Program", "AuthAmt", iteration));
+		actions.doubleClick(elementLocator).perform();
+		UIUtils.enterText(driver, amount);
+		UIUtils.clickElement(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Program", "FinalChkbox", iteration));
+
+		if (changeCurrency) {
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "Currency"));
+			driver.switchTo().defaultContent();
+			wait = new WebDriverWait(driver, WAITTIME);
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+			driver.switchTo().frame("frame_detail");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "CurrencyCode"));
+			UIUtils.enterText(driver, "Euro");
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("frame_hdr");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "OKBtn"));
+		}
+		String toBeMsg = msgFromTestData;
+		String msg = "";
+		String amtMsg = "";
+		String status = "";
+		if (changeCurrency) {
+			amtMsg = "Total Authorized: $" + euroCurr + ".00";
+			msg = saveAndConfirm();
+			if (msg.contains(toBeMsg) && msg.contains(amtMsg)) {
+				LOGGER.logTestStep("Pass", msg + " found");
+			} else {
+				LOGGER.logTestStep("Fail", toBeMsg + " not found");
+			}
+			status = getStatus();
+			if (status.equalsIgnoreCase(status1)) {
+				LOGGER.logTestStep("Pass", status1 + " found");
+			} else {
+				LOGGER.logTestStep("Fail", status1 + " not found");
+			}
+		} else {
+			amtMsg = "Total Authorized: $" + amount + ".00";
+			msg = saveAndConfirm();
+			if (msg.contains(toBeMsg) && msg.contains(amtMsg)) {
+				LOGGER.logTestStep("Pass", msg + " found");
+			} else {
+				LOGGER.logTestStep("Fail", toBeMsg + " not found");
+			}
+			status = getStatus();
+			if (status.equalsIgnoreCase(status1)) {
+				LOGGER.logTestStep("Pass", status1 + " found");
+			} else {
+				LOGGER.logTestStep("Fail", status1 + " not found");
+			}
+		}
+
+		driver.switchTo().defaultContent();
+		wait = new WebDriverWait(driver, WAITTIME);
+		//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "InvoiceDate", iteration),
+				UIUtils.getCurrentDate());
+		UIUtils.enterTab(driver);
+		UIUtils.inputText(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Program", "InvoiceFinDate", iteration),
+				UIUtils.getMonthEndDate());
+		UIUtils.enterTab(driver);
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "InvoiceNbr", iteration),
+				"invoice reference");
+
+		elementLocator = driver
+				.findElement(TestConfig.getInstance().getObjRep().getLocator("Program", "InvoiceAmt", iteration));
+		actions.doubleClick(elementLocator).perform();
+		UIUtils.enterText(driver, amount);
+		UIUtils.clickElement(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Program", "InvoiceFinalChkbox", iteration));
+
+		if (changeCurrency) {
+			amtMsg = "Total Submitted: $" + euroCurr + ".00";
+			msg = saveAndConfirm();
+			if (msg.contains(toBeMsg) && msg.contains(amtMsg)) {
+				LOGGER.logTestStep("Pass", msg + " found");
+			} else {
+				LOGGER.logTestStep("Fail", toBeMsg + " not found");
+			}
+			status = getStatus();
+			if (status.equalsIgnoreCase(status2)) {
+				LOGGER.logTestStep("Pass", status2 + " found");
+			} else {
+				LOGGER.logTestStep("Fail", status2 + " not found");
+			}
+		} else {
+			amtMsg = "Total Submitted: $" + amount + ".00";
+			msg = saveAndConfirm();
+			if (msg.contains(toBeMsg) && msg.contains(amtMsg)) {
+				LOGGER.logTestStep("Pass", msg + " found");
+			} else {
+				LOGGER.logTestStep("Fail", toBeMsg + " not found");
+			}
+			status = getStatus();
+			if (status.equalsIgnoreCase(status2)) {
+				LOGGER.logTestStep("Pass", status2 + " found");
+			} else {
+				LOGGER.logTestStep("Fail", status2 + " not found");
+			}
+		}
+		driver.switchTo().defaultContent();
+		wait = new WebDriverWait(driver, WAITTIME);
+		//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("work");
+		driver.switchTo().frame("work_top");
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PaidDate", iteration),
+				UIUtils.getCurrentDate());
+		UIUtils.enterTab(driver);
+		UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "PaidFinDate", iteration),
+				UIUtils.getMonthEndDate());
+		UIUtils.enterTab(driver);
+		elementLocator = driver
+				.findElement(TestConfig.getInstance().getObjRep().getLocator("Program", "PaidAmt", iteration));
+		actions.doubleClick(elementLocator).perform();
+		UIUtils.enterText(driver, amount);
+		UIUtils.clickElement(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Program", "PaidFinalChkbox", iteration));
+		elementLocator = driver
+				.findElement(TestConfig.getInstance().getObjRep().getLocator("Program", "BankAmt", iteration));
+		actions.doubleClick(elementLocator).perform();
+		UIUtils.enterText(driver, amount);
+
+		if (changeCurrency) {
+			amtMsg = "Total Paid: $" + euroCurr + ".00";
+			msg = saveAndConfirm();
+			if (msg.contains(toBeMsg) && msg.contains(amtMsg)) {
+				LOGGER.logTestStep("Pass", msg + " found");
+			} else {
+				LOGGER.logTestStep("Fail", toBeMsg + " not found");
+			}
+			status = getStatus();
+			if (status.equalsIgnoreCase(finalStatus)) {
+				LOGGER.logTestStep("Pass", finalStatus + " found");
+			} else {
+				LOGGER.logTestStep("Fail", finalStatus + " not found");
+			}
+		} else {
+			amtMsg = "Total Paid: $" + amount + ".00";
+			msg = saveAndConfirm();
+			if (msg.contains(toBeMsg) && msg.contains(amtMsg)) {
+				LOGGER.logTestStep("Pass", msg + " found");
+			} else {
+				LOGGER.logTestStep("Fail", toBeMsg + " not found");
+			}
+			status = getStatus();
+			if (status.equalsIgnoreCase(finalStatus)) {
+				LOGGER.logTestStep("Pass", finalStatus + " found");
+			} else {
+				LOGGER.logTestStep("Fail", finalStatus + " not found");
+			}
+		}
+	}
+
+	private String saveAndConfirm() throws Exception {
+		driver.switchTo().defaultContent();
+		WebDriverWait wait = new WebDriverWait(driver, WAITTIME);
+		//wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement frame = driver.findElement(By.id("did_appframe"));
+		driver.switchTo().frame(frame);
+		driver.switchTo().frame("myBar");
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "SaveBtn"));
+
+		driver.switchTo().defaultContent();
+		UIUtils.highLightElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "ConfirmPopup"));
+		String message = UIUtils.getElementInnerText(driver,
+				TestConfig.getInstance().getObjRep().getLocator("Program", "ConfirmPopup"));
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Program", "YesBtn"));
+		return message;
+	}
+}

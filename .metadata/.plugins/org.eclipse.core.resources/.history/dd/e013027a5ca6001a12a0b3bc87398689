@@ -1,0 +1,7 @@
+package parser;
+
+
+
+public class Prac1 extends Prac {
+	
+}

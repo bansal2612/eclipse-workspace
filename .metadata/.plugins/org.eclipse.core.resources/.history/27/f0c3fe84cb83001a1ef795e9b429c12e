@@ -1,0 +1,298 @@
+package com.birlasoft.automation.uipages;
+
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.utils.UIUtils;
+
+public class AdminPage extends AbstractPage {
+	static Logger LOGGER = Logger.getLogger(AdminPage.class);
+	WebDriverWait wWait;
+
+	public AdminPage(WebDriver driver) {
+		super(driver);
+		wWait = new WebDriverWait(driver,  Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+	}
+
+	public void closePopup() throws Exception {
+		WebElement popMainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopup")));
+		driver.switchTo().frame(popMainFrame);
+		WebElement topFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopMain")));
+		driver.switchTo().frame(topFrame);
+
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnOK"));
+
+		driver.switchTo().defaultContent();
+	}
+
+	@Override
+	public boolean isPageOpen() {
+		driver.switchTo().frame(wWait.until(ExpectedConditions.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("AdminRole", "mainPopup"))));
+		boolean isExist = UIUtils.isObjectExist(driver,TestConfig.getInstance().getObjRep().getLocator("AdminRole", "Roles"));
+		return isExist;
+	}
+	
+	//Method to enter into Work_bottom frame
+	public void getWork_bottom()
+	{
+		  driver.switchTo().defaultContent();
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		  driver.switchTo().frame("work");
+		  wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		  wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+	}
+	//Method to enter into work_top
+	public void getWork_top_Admin()
+	{
+	    
+		try {
+			 WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+			 driver.switchTo().frame(did_appframe_Element);
+			 WebElement work_Element=driver.findElement(By.name("work"));
+			 driver.switchTo().frame(work_Element);
+			 WebElement work_top_Element=driver.findElement(By.name("work_top"));
+			 driver.switchTo().frame(work_top_Element);
+			 Thread.sleep(5*1000);
+			
+		} catch (Exception e) {
+           e.printStackTrace();
+		}
+		
+	}
+	//Method to direct for myBarFrame
+		public void getMyBarFrame_Admin()
+		{
+			
+			driver.switchTo().defaultContent();
+			wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			driver.switchTo().frame("myBar");
+		}
+		public void get_cpTop()
+		{
+		 try {
+			 
+			 WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+			 driver.switchTo().frame(did_appframe_Element);
+			 WebElement frame_cpTop=driver.findElement(By.name("cp_top"));
+			 driver.switchTo().frame(frame_cpTop);
+			 Thread.sleep(5*1000);
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+	}
+		
+		public void getFrameDetail() {
+			try {
+				WebElement iframe_main=driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Admin", "PopUpFrame"));
+				wWait.until(ExpectedConditions.visibilityOf(iframe_main));
+				driver.switchTo().frame(iframe_main);
+				WebElement frame_detail=driver.findElement(By.name("frame_detail"));
+		        driver.switchTo().frame(frame_detail);
+		        Thread.sleep(5*1000);
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		
+		public void getWork_bottom_updated() {
+			try {
+				
+				 WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+				 driver.switchTo().frame(did_appframe_Element);
+				 WebElement work_Element=driver.findElement(By.name("work"));
+				 driver.switchTo().frame(work_Element);
+				 wWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"))));
+		         WebElement work_Bottom=driver.findElement(By.xpath("//frame[contains(@name,'work_bottom')]"));
+		         driver.switchTo().frame(work_Bottom);
+				 Thread.sleep(5*1000);
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		public void getWork_updated() {
+			try {
+				
+				 WebElement did_appframe_Element=driver.findElement(By.id("did_appframe"));
+				 driver.switchTo().frame(did_appframe_Element);
+				 WebElement work_Element=driver.findElement(By.name("work"));
+				 driver.switchTo().frame(work_Element);
+				 Thread.sleep(5*1000);
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		public void getMechHeader() {
+			try {
+				
+				 WebElement did_dmode_Element=driver.findElement(By.name("did_dmode_frame_1"));
+				 driver.switchTo().frame(did_dmode_Element);
+				 WebElement mechparent_Element=driver.findElement(By.name("mechparent"));
+				 driver.switchTo().frame(mechparent_Element);
+				 Thread.sleep(5*1000);
+				 WebElement mech_header_Element=driver.findElement(By.name("mech_header"));
+				 driver.switchTo().frame(mech_header_Element);
+				 Thread.sleep(5*1000);
+				 
+				 
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		public void getMechHeader_dmode_frame_2() {
+			try {
+				
+				 WebElement did_dmode_Element=driver.findElement(By.name("did_dmode_frame_2"));
+				 driver.switchTo().frame(did_dmode_Element);
+				 WebElement mechparent_Element=driver.findElement(By.name("mechparent"));
+				 driver.switchTo().frame(mechparent_Element);
+				 Thread.sleep(5*1000);
+				 WebElement mech_header_Element=driver.findElement(By.name("mech_header"));
+				 driver.switchTo().frame(mech_header_Element);
+				 Thread.sleep(5*1000);
+				 
+				 
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		public void mech_navigate() {
+			try {
+				
+				 WebElement did_dmode_Element=driver.findElement(By.name("did_dmode_frame_1"));
+				 driver.switchTo().frame(did_dmode_Element);
+				 WebElement mechparent_Element=driver.findElement(By.name("mechparent"));
+				 driver.switchTo().frame(mechparent_Element);
+				 Thread.sleep(5*1000);
+				 WebElement mech_navigate_Element=driver.findElement(By.name("mech_navigate"));
+				 driver.switchTo().frame(mech_navigate_Element);
+				 Thread.sleep(5*1000);
+				 
+				 
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		public void frame_hdr() {
+			try {
+				Thread.sleep(5*1000);
+				 WebElement did_dmode_frame_2=driver.findElement(By.name("did_dmode_frame_2"));
+				 driver.switchTo().frame(did_dmode_frame_2);
+				 WebElement frame_hdr=driver.findElement(By.name("frame_hdr"));
+				 driver.switchTo().frame(frame_hdr);
+				 Thread.sleep(5*1000);
+				 
+				 
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		public void action_work() {
+			try {
+				Thread.sleep(5*1000);
+				 WebElement did_dmode_frame_1=driver.findElement(By.name("did_dmode_frame_1"));
+				 driver.switchTo().frame(did_dmode_frame_1);
+				 WebElement mechparent=driver.findElement(By.name("mechparent"));
+				 driver.switchTo().frame(mechparent);
+				 WebElement mech_work=driver.findElement(By.name("mech_work"));
+				 driver.switchTo().frame(mech_work);
+				 WebElement action_work=driver.findElement(By.name("action_work"));
+				 driver.switchTo().frame(action_work);
+				 Thread.sleep(5*1000);
+				 
+				 
+			} catch (Exception e) {
+              e.printStackTrace();
+              
+			}
+		}
+		
+		public boolean waitForElement(WebElement element) throws InterruptedException
+		{
+			int retryCount=0;
+			if(element==null && retryCount<10)
+			{
+				Thread.sleep(5000);
+			    return false;
+		}
+			else
+				return true;
+			
+		}
+		public boolean waitForLoader() throws InterruptedException
+		{
+			try {
+				if(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Common", "Loader")).isDisplayed())
+			    {
+				wWait.until(ExpectedConditions.invisibilityOf(
+						UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+				return true;
+			    }
+			
+			} catch (Exception e) {
+			    return false;
+			}
+			return false;
+						
+			
+			
+		}
+		public boolean waitForElementAppear(WebElement element,By by, int retryCount) throws Exception
+		{
+				
+			if(element==null && retryCount!=0)
+			{
+				System.out.println("Testing the Loop");
+				Thread.sleep(5000);
+				retryCount++;
+				element=UIUtils.findElement(driver, by);
+			    return false;
+		}
+			else
+				return true;
+			
+		}
+		public void uploadFileRobot(String pathofFile) throws AWTException
+		{
+			Robot robot=new Robot();
+			robot.setAutoDelay(2000);
+			
+			StringSelection stringSelection=new StringSelection(pathofFile);
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection,null);
+			robot.setAutoDelay(1000);
+			robot.keyPress(KeyEvent.VK_CONTROL);
+		    robot.keyPress(KeyEvent.VK_V);
+		 
+		    robot.keyRelease(KeyEvent.VK_CONTROL);
+		    robot.keyRelease(KeyEvent.VK_V);
+		    
+		    robot.setAutoDelay(1000);
+		    robot.keyPress(KeyEvent.VK_ENTER);
+	        robot.keyRelease(KeyEvent.VK_ENTER);
+		}
+		
+		
+		
+		
+}

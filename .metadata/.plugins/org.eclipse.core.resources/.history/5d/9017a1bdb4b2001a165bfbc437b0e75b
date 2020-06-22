@@ -1,0 +1,37 @@
+package com.testNG;
+
+import org.testng.Assert;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+public class Prac {
+
+	@DataProvider(name="ProviderSearch")
+	public Object[][] getDataProvider()
+	{
+		return new Object[][]
+				{
+			{"test","test1"},
+			{"test2","test3"}
+				};
+	}
+	@Test(dataProvider = "ProviderSearch", invocationCount = 3, groups = {"P0"}, timeOut = 1)
+	public void UserData(String user,String Pass)
+	{
+		System.out.print(user + " ");
+		System.out.print(Pass);
+		System.out.println("");
+		System.out.println("P0 Executed");
+		Assert.assertTrue(true);
+		Thread.sleep(2000);
+	}
+	@Test(dataProvider = "ProviderSearch",groups = {"P1"})
+	public void UserData1(String user,String Pass)
+	{
+		System.out.print(user + " ");
+		System.out.print(Pass);
+		System.out.println("");
+		System.out.println("P1 Executed");
+		Assert.assertTrue(true);
+	}
+}

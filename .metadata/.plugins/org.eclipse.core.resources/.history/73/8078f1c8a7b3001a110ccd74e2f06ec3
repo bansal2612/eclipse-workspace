@@ -1,0 +1,13 @@
+package testINT;
+
+import org.testng.annotations.BeforeMethod;
+
+public class BaseClass {
+	
+	@BeforeMethod
+	public void driverInst()
+	{
+		
+	}
+
+}

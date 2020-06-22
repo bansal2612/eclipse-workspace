@@ -1,0 +1,12 @@
+package parser;
+
+
+
+public class Prac1 extends Prac {
+	
+	@Override
+	public void get() {
+		// TODO Auto-generated method stub
+		super.get();
+	}
+}

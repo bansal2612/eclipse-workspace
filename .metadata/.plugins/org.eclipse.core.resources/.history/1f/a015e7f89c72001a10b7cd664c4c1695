@@ -1,0 +1,45 @@
+package com.birlasoft.automation.uipages;
+
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.utils.UIUtils;
+
+public class ReportsPage extends AbstractPage {
+	static Logger LOGGER = Logger.getLogger(ReportsPage.class);
+	WebDriverWait wWait;
+
+	public ReportsPage(WebDriver driver) {
+		super(driver);
+		wWait = new WebDriverWait(driver,  Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+	}
+
+	public void closePopup() throws Exception {
+		WebElement popMainFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopup")));
+		driver.switchTo().frame(popMainFrame);
+		WebElement topFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "framePopMain")));
+		driver.switchTo().frame(topFrame);
+		UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnOK"));
+		driver.switchTo().defaultContent();
+	}
+
+	@Override
+	public boolean isPageOpen() {
+		wWait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+		WebElement workFrame = wWait.until(ExpectedConditions
+				.presenceOfElementLocated(TestConfig.getInstance().getObjRep().getLocator("Common", "frameWork")));
+		driver.switchTo().frame(workFrame);
+		wWait.until(ExpectedConditions.visibilityOf(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Reports", "RunReports"))));
+		//Checking whether Run Reports Checbox is visible or not.
+		boolean isExist = UIUtils.isObjectExist(driver, TestConfig.getInstance().getObjRep().getLocator("Reports", "RunReports"));
+		return isExist;
+	}
+	
+}

@@ -1,0 +1,6 @@
+package parser;
+
+public class ABC implements Cloneable{
+	public Object clone() throws CloneNotSupportedException
+
+}

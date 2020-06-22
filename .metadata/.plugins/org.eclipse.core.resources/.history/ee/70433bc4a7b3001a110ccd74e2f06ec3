@@ -1,0 +1,7 @@
+package testINT;
+
+public class BaseClass {
+	
+	@before
+
+}

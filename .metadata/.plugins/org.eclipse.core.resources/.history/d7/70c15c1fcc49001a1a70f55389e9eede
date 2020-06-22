@@ -1,0 +1,193 @@
+package com.birlasoft.automation.tests;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.PageFactory;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.pages.AssigneePage;
+import com.birlasoft.automation.pages.ClientsPage;
+import com.birlasoft.automation.pages.HomePage;
+import com.birlasoft.automation.pages.LoginPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.DataLoaders;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestsAssigneeClient {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+
+	@BeforeSuite
+	public void suiteSetup() {
+		try {
+			LOGGER = new LogMe(TestsAssigneeClient.class);
+			TestConfig.getInstance().suiteSetup();
+		} catch (Exception e) {
+			LOGGER.logError("Exception " + e.getClass().getName() + " caught from suite setup method", e);
+		}
+	}
+
+	@BeforeTest
+	public void testSetup() throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+
+		UIUtils.waitForPageLoad(driver);
+
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+
+		// Login into the application
+		login = PageFactory.initElements(driver, LoginPage.class);
+
+		// Validation whether login is displaying or not
+		Assert.assertTrue(login.isPageOpen());
+
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+				TestConfig.getDataConfig().getPropertyValue("secret"));
+	}
+
+	@BeforeMethod
+	public void startReporting(Method method) throws Exception {
+		LOGGER.logBeginTestCase(method.getName());
+
+		// Validation whether login is successful or not
+		Assert.assertTrue(home.isPageOpen());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+
+	@Test(description = "Assignee Search - FileNumber", priority = 1, enabled = true, dataProvider = "getAssigneeData")
+	public void tc02AssigneeSearch(String empId, String lastName, String fileNumber, String refNumber, String ssn,
+			String country, String status, String type) throws Exception {
+		// Click on Assignee Menu
+		AssigneePage assPage = home.clickAssignee();
+
+		// Close Pop-up
+		// home.closePopup();
+
+		Assert.assertTrue(assPage.isPageOpen());
+		LOGGER.logTestStep("PASS", "Assignee page is displaying - Click Assignee is successful", assPage.takesScreenshot());
+
+		assPage.searchAssignee(empId, lastName, fileNumber, refNumber, ssn, country, status, type);
+		LOGGER.logInfo("Search Result came successfully");
+		Assert.assertTrue(assPage.verifyAssigneeSearch(empId, lastName, fileNumber, refNumber, ssn, country, status, type));
+		
+		LOGGER.logTestStep("PASS", "Assignee page is verified  successful");
+		
+		
+		// Validation of search results
+		// Assert.assertTrue(assPage.verifyAssigneeSearch(empId, lastName, fileNumber, refNumber, ssn, country, status, type));
+		// LOGGER.logTestStep("PASS", "Search successful for given criteria");
+	}
+	
+	//@Test(description = "Cleint Search - FileNumber", priority = 2, enabled = true, dataProvider = "getClientData")
+	public void tc02ClientSearch(String client, String clientNumber, String country, String status) throws Exception {
+		// Click on Assignee Menu
+		ClientsPage clientPage = home.clickClients();
+
+		// Close Pop-up
+		// home.closePopup();
+
+		Assert.assertTrue(clientPage.isPageOpen());
+		LOGGER.logTestStep("PASS", "Client page is displaying - Click Client is successful", clientPage.takesScreenshot());
+
+		clientPage.searchClient(client,clientNumber,  country, status);
+		
+		//Assert.assertTrue(clientPage.verifyClientSearch(client, clientNumber, country, status));
+		
+		//LOGGER.logTestStep("PASS", "Client page is verified  successful", clientPage.takesScreenshot());
+		
+		// Validation of search results
+		// Assert.assertTrue(assPage.verifyAssigneeSearch(empId, lastName, fileNumber, refNumber, ssn, country, status, type));
+		// LOGGER.logTestStep("PASS", "Search successful for given criteria");
+	}
+	
+
+	@AfterMethod
+	public void testResult(Method method, ITestResult result) throws Exception {
+		
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		LOGGER.logEndTestCase(method.getName());
+	}
+
+	@AfterTest
+	public void tearDown() throws Exception {
+		// Trying to logout from the application
+		login = home.logout();
+
+		// Validation whether login is displaying or not
+		Assert.assertTrue(login.isPageOpen());
+	}
+
+	@AfterSuite
+	public void generateResult() {
+		try {
+			ExtentManager.getInstance().flush();
+		} finally {
+			ExtentManager.getInstance().close();
+		}
+		driver.close();
+	}
+
+	@DataProvider(name = "getAssigneeData")
+	public Object[][] getAssigneeData() throws IOException {
+		String testDataPath = new File("Framework\\Test_Data\\TestData.xlsx").getCanonicalPath();
+		return DataLoaders.excelDataLoader(testDataPath, "SearchAssignee");
+	}
+	
+	@DataProvider(name = "getClientData")
+	public Object[][] getAssigneeData1() throws IOException {
+		String testDataPath = new File("Framework\\Test_Data\\TestData.xlsx").getCanonicalPath();
+		return DataLoaders.excelDataLoader(testDataPath, "SearchClient");
+	}
+	
+}

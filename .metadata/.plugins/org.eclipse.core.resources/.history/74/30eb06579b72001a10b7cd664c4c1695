@@ -1,0 +1,294 @@
+package com.birlasoft.automation.tests.regression;
+
+import java.lang.reflect.Method;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+
+import com.birlasoft.automation.driver.TestConfig;
+import com.birlasoft.automation.driver.TestData;
+import com.birlasoft.automation.driver.TestDriver;
+import com.birlasoft.automation.tests.regression.TestsClient;
+import com.birlasoft.automation.uipages.HomePage;
+import com.birlasoft.automation.uipages.LoginPage;
+import com.birlasoft.automation.uipages.SirvaPage;
+import com.birlasoft.framework.ExtentManager;
+import com.birlasoft.framework.LogMe;
+import com.birlasoft.utils.UIUtils;
+import com.relevantcodes.extentreports.LogStatus;
+
+public class TestSirva {
+	static LogMe LOGGER;
+	private WebDriver driver;
+	LoginPage login;
+	HomePage home;
+	WebDriverWait wait;	
+	Random rand;
+	String downloadPath="C:\\Users\\Ankit Bansal\\Downloads";
+	@BeforeSuite
+	public void suiteSetup() {
+		
+		try {
+			LOGGER = new LogMe(TestsClient.class);
+			TestConfig.getInstance().suiteSetup();
+		} catch (Exception e) {
+			LOGGER.logError("Exception " + e.getClass().getName() + " caught from suite setup method", e);
+		}
+		
+	}
+	@BeforeMethod
+	public void startReporting(Method method) throws Exception {
+		driver = TestDriver.driverInstantiation(TestConfig.getInstance().getBrowserName().toUpperCase());
+		LogMe.getLogger().info("Base URL is " + TestConfig.getInstance().getAppBaseURL());
+		LOGGER.logInfo("*********EXECUTION STARTED**********\n\n");
+		driver.get(TestConfig.getInstance().getAppBaseURL());
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+		driver.manage().timeouts().setScriptTimeout(30, TimeUnit.SECONDS);
+		UIUtils.waitForPageLoad(driver);
+		if (!TestConfig.getInstance().getDeviceResolution().equals("Full Screen")) {
+			String[] dim = TestConfig.getInstance().getDeviceResolution().split(",");
+			int dimX = Integer.parseInt(dim[0]);
+			int dimY = Integer.parseInt(dim[1]);
+			Dimension d = new Dimension(dimX, dimY);
+			driver.manage().window().setSize(d);
+		} else {
+			driver.manage().window().maximize();
+		}
+
+		// Login into the application
+		login = PageFactory.initElements(driver, LoginPage.class);
+		// Validation whether login is displaying or not
+		Assert.assertTrue(login.isPageOpen(),login.takesScreenshot());
+		// Trying to login into the application
+		home = login.login(TestConfig.getDataConfig().getPropertyValue("userName"),
+		TestConfig.getDataConfig().getPropertyValue("secret"));
+		wait=new WebDriverWait(driver, Integer.parseInt(TestConfig.getConfig().getPropertyValue("AVGWAITTIME")));
+		rand=new Random();
+		LOGGER.logBeginTestCase(method.getName());
+		Assert.assertTrue(home.isPageOpen(),home.takesScreenshot());
+		LOGGER.logTestStep("PASS", "Home page is displaying");
+	}
+	@Test(description = "Existing office open/update",enabled = false,priority = 1, groups= {"Regression", "Sirva"})
+    public void TC_01_Existing_office_open_update() throws Exception 
+	{
+		SirvaPage sirvaPage=home.clickSirva();
+		try {
+			Assert.assertTrue(sirvaPage.isPageOpen(),sirvaPage.takesScreenshot());
+			LOGGER.logTestStep("PASS", "Sirva Page is opened","Sirva Page is not opened");
+			UIUtils.selectValue(driver, By.xpath("//select[@id='Select1']"), "text", "India");
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("svc_select_btns");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Search"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			LOGGER.logTestStep("PASS", "SIRVA India Offices displayed",sirvaPage.takesScreenshot());
+			sirvaPage.get_WorkBottomUpdated();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+			wait.until(ExpectedConditions.invisibilityOf(driver.findElement(TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"))));
+			UIUtils.waitForPageLoad(driver);
+			driver.switchTo().defaultContent();
+			sirvaPage.getWork_top_sirva_update();
+			UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "OtherPhone")), "+91321456" + rand.nextInt(1000));
+			UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "Website")), " www.sirva" + rand.nextInt(100) + "indiatest.com");
+			driver.switchTo().defaultContent();
+			sirvaPage.get_myBar();
+			UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Client", "save"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			LOGGER.logTestStep("PASS", "Sirva Contact is updated",sirvaPage.takesScreenshot());
+			
+		} catch (Exception e) {
+			LOGGER.logTestStep("FAIL", "Sirva contact info is not updated",sirvaPage.takesScreenshot());
+		}
+	}
+	
+	@Test(description = "SIRVA Contact Add",enabled = true,priority = 1, groups= {"Regression", "Sirva"})
+    public void TC_02_SIRVA_Contact_Add() throws Exception 
+	{
+		SirvaPage sirvaPage=home.clickSirva();
+		try {
+			Assert.assertTrue(sirvaPage.isPageOpen(),sirvaPage.takesScreenshot());
+			LOGGER.logTestStep("PASS", "Sirva Page is opened",sirvaPage.takesScreenshot());
+			UIUtils.selectValue(driver,TestConfig.getInstance().getObjRep().getLocator("Sirva", "Country") , "text", "India");
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("svc_select_btns");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Rolesearch", "Search"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			LOGGER.logTestStep("PASS", "SIRVA India Offices displayed",sirvaPage.takesScreenshot());
+			sirvaPage.get_WorkBottomUpdated();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "anchorLink"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_appframe"));
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("menuBar"));
+			UIUtils.dynamicWait(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "DocLink"), 30);
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "DocLink"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			sirvaPage.get_WorkBottomUpdated();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "Addnew"))));
+			UIUtils.clickElement(driver,TestConfig.getInstance().getObjRep().getLocator("Sirva", "Addnew"));
+			LOGGER.logTestStep("PASS", "Add new Contact Displayed",sirvaPage.takesScreenshot());
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			sirvaPage.getWork_top_sirva();
+			UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "FirstName")), TestData.getData("Sirva").get("FirstName").toString());
+			String lastName=TestData.getData("Sirva").get("LastName").toString()+ rand.nextInt(1000);
+			UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "LastName")), lastName);
+			String email=TestData.getData("Sirva").get("FirstName").toString() + "." + lastName + "@sirva.com";
+			UIUtils.inputText(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "Email")), email);
+	        Thread.sleep(1000);
+			UIUtils.selectValue(driver, TestConfig.getInstance().getObjRep().getLocator("Sirva", "PfdCont"), "text", TestData.getData("Sirva").get("PfdCont").toString());
+	        UIUtils.clickElement(driver, By.xpath("//input[@id='PrimaryRole_TextBoxMaster']"));
+	        Thread.sleep(2000);
+	        UIUtils.clickBackSpace(driver, By.xpath("//input[@id='PrimaryRole_TextBoxMaster']"));
+	        Thread.sleep(2000);
+	        UIUtils.inputText(UIUtils.findElement(driver, By.xpath("//input[@id='PrimaryRole_TextBoxMaster']")), TestData.getData("Sirva").get("Prole").toString()); 
+	        Thread.sleep(2000);       
+	        UIUtils.clickEnter(driver, By.xpath("//input[@id='PrimaryRole_TextBoxMaster']"));
+	        UIUtils.clickElement(driver, By.xpath("//a[text()='User ID']"));
+	        driver.switchTo().defaultContent();
+	        wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_1']//iframe"))));
+	        wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_dmode_frame_1"));
+	        UIUtils.dynamicWait(driver, By.xpath("//input[@id='cont_password']"), 10);
+	        UIUtils.inputText(UIUtils.findElement(driver, By.xpath("//input[@id='cont_password']")), TestData.getData("Sirva").get("Pwd").toString());
+	        UIUtils.inputText(UIUtils.findElement(driver, By.xpath("//input[@name='cont_password_verify']")), TestData.getData("Sirva").get("Pwd").toString());        
+	        UIUtils.clickElement(driver, By.xpath("//input[@id='expire_password']"));
+	        UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Testpolicy", "Save"));
+	        Thread.sleep(4000);
+	        driver.switchTo().defaultContent();
+		    sirvaPage.getWork_top_sirva_update();
+		    UIUtils.clickElement(driver, By.xpath("//a[text()='Master Fields:']"));
+		    Thread.sleep(2000);
+		    wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//iframe[@id='did_master_fields']"))));
+		    wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("did_master_fields"));
+		    UIUtils.selectValue(driver, By.xpath("//select[@name='md_value_1']"), "text", "Other");
+		    driver.switchTo().parentFrame();
+		    driver.switchTo().parentFrame();
+		    driver.switchTo().parentFrame();
+		    driver.switchTo().frame("myBar");
+		    UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "Save"));
+		    driver.switchTo().defaultContent();
+		    wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Addservice", "NoButton"));
+			sirvaPage.getWork_top_sirva_update();
+			UIUtils.clickElement(driver, By.xpath("//a[text()='Teams:']"));
+			driver.switchTo().defaultContent();
+			UIUtils.dynamicWait(driver, By.xpath("//div[@id='styled_popup_1']//iframe"), 60);
+			driver.switchTo().frame(UIUtils.findElement(driver, By.xpath("//div[@id='styled_popup_1']//iframe")));
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt("mainframe"));
+			Thread.sleep(8000);
+			wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(By.tagName("tr"), 22));
+			UIUtils.clickElement(driver, By.xpath("//td[text()='Americas']/following-sibling::td[text()=' Manager']/input"));
+			driver.switchTo().parentFrame();
+			driver.switchTo().frame("title_buttons");
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Fileupload", "Okbutton"));
+			driver.switchTo().defaultContent();
+			Thread.sleep(4000);
+			sirvaPage.get_myBar();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Client", "Save"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "Loader"))));
+			Thread.sleep(3000);
+			sirvaPage.get_cpTop();
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Common", "btnLogout"));
+			driver.switchTo().defaultContent();
+			wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"))));
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtUserId"), email);
+			UIUtils.inputText(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "txtPassword"), TestData.getData("Sirva").get("Pwd").toString());
+			UIUtils.clickElement(driver, TestConfig.getInstance().getObjRep().getLocator("Login", "btnLogin"));
+			int i=1;
+			while(i<20000)
+			{
+				if(driver.getCurrentUrl().contains("appframe"))
+				{
+				wait.until(ExpectedConditions.visibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='did_meterProgressBar']"))));
+				wait.until(ExpectedConditions.invisibilityOf(UIUtils.findElement(driver, By.xpath("//div[@id='did_meterProgressBar']"))));
+				break;
+				
+			}
+				else
+					i=i+1;
+				    
+				
+			}
+			LOGGER.logTestStep("PASS", "Login is successful",sirvaPage.takesScreenshot());
+
+			
+		} catch (Exception e) {
+			LOGGER.logTestStep("FAIL", "SIRVA Contact Add Test case failed",sirvaPage.takesScreenshot());
+		}	
+		
+	}
+	  @AfterMethod
+	  public void testResult(Method method, ITestResult result) throws Exception {
+		switch (result.getStatus()) {
+		case ITestResult.SUCCESS:
+			LogMe.getExtentTest().log(LogStatus.PASS, "Test Case " + method.getName() + " is pass");
+			break;
+		case ITestResult.FAILURE:
+			LogMe.getExtentTest().log(LogStatus.FAIL, "Test Case " + method.getName() + " failed");
+			break;
+		case ITestResult.SKIP:
+			LogMe.getExtentTest().log(LogStatus.SKIP, "Test Case " + method.getName() + "  skiped");
+			break;
+		default:
+			break;
+		}
+		
+		
+		  LOGGER.logEndTestCase(method.getName());
+		  login = home.logout(); 
+		  // Validation weather login is displaying or not
+		  
+		  Assert.assertTrue(login.isPageOpen(),login.takesScreenshot()); driver.quit();
+		 
+		 
+		 
+	}
+
+	@AfterTest
+	public void tearDown() throws Exception {
+		
+	}
+
+	@AfterSuite
+	public void generateResult() {
+		try {
+			ExtentManager.getInstance().flush();
+		} finally {
+			ExtentManager.getInstance().close();
+		}
+	
+	}
+
+	
+	
+
+}
+
+

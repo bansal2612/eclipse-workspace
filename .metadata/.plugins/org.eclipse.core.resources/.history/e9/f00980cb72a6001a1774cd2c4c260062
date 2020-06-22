@@ -1,0 +1,9 @@
+package parser;
+
+public class ABC implements PracInt{
+	public static void main(String[] args) {
+		PracInt obj=new ABC();
+		obj.abc();
+	}
+
+}

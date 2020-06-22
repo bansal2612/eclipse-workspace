@@ -1,0 +1,8 @@
+package testPackage;
+import org.testng.annotations.Test;
+
+
+public class TestClass {
+
+
+}

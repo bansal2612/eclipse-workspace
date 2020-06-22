@@ -1,0 +1,10 @@
+package parser;
+
+public class Prac {
+	public void get()
+	{
+		System.out.println("parent");
+	}
+	
+
+}

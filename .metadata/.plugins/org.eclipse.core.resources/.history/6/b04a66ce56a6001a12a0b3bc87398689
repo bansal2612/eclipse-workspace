@@ -1,0 +1,11 @@
+package parser;
+
+public class Prac {
+	public Prac() {
+		// TODO Auto-generated constructor stub
+	} get()
+	{
+		return this;
+	}
+
+}

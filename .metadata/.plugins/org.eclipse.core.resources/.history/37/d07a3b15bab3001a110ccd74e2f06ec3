@@ -1,0 +1,23 @@
+package com.testNG;
+
+import java.io.File;
+
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+
+public class Utility {
+
+	
+	public void takeScreenShot(WebDriver driver, String ScreenshotName)
+	{
+		try {
+			
+			TakesScreenshot ts=(TakesScreenshot)driver;
+			File f=ts.getScreenshotAs(OutputType.FILE);
+			Fi
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+}
