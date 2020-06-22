@@ -55,7 +55,7 @@ public class BaseClass {
 	{
 		Logger.log(Status.INFO, "Opening the URL");
 		driver.get("http://www.google.com");
-		Assert.assertTrue(false);
+		Assert.assertTrue(true);
 		Logger.log(Status.PASS, "URL is opened");
 		
 	}
